@@ -252,7 +252,11 @@ class Build {
             }
             suffix = "ibmruntimes/openj9-openjdk-${openj9JavaToBuild}"
         } else if (buildConfig.VARIANT == "hotspot") {
-            suffix = "adoptopenjdk/openjdk-${buildConfig.JAVA_TO_BUILD}"
+            if (buildConfig.ARCHITECTURE != "riscv64") {
+                suffix = "adoptopenjdk/openjdk-${buildConfig.JAVA_TO_BUILD}"
+            } else {
+                suffix = "openjdk/jdk-sandbox"
+            }
         } else if (buildConfig.VARIANT == "dragonwell") {
             suffix = "alibaba/dragonwell${javaNumber}"
         } else if (buildConfig.VARIANT == "bisheng") {

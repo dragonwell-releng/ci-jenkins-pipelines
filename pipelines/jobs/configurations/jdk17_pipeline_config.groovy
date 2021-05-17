@@ -176,6 +176,24 @@ class Config17 {
                 arch                : 'arm',
                 test                : 'default',
                 configureArgs       : '--enable-dtrace'
+        ],
+
+        riscv64Linux      :  [
+                os                   : 'linux',
+                dockerImage          : [
+                        "hotspot" : 'adoptopenjdk/centos6_build_image',
+                ],
+                arch                 : 'riscv64',
+                crossCompile         : [
+                        "hotspot"     : 'x64'
+                ],
+                buildArgs            : [
+                        //Experimental build from port branch
+                        "hotspot"     : '--cross-compile -b riscv-port-branch --disable-adopt-branch-safety'
+                ],
+                configureArgs        : [
+                        "hotspot"     : '--disable-ddr --openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root'
+                ]
         ]
   ]
 
