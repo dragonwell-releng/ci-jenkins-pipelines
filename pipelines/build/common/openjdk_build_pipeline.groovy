@@ -1086,8 +1086,9 @@ class Build {
 
                     // Run a downstream job on riscv machine that returns the java version. Otherwise, just read the version.txt
                     String versionOut
-                    if (buildConfig.BUILD_ARGS.contains('--cross-compile') && buildConfig.VARIANT == "openj9") {
+                    if (buildConfig.BUILD_ARGS.contains('--cross-compile')) {
                         context.println "[WARNING] Don't read faked version.txt on cross compiled build! Archiving early and running downstream job to retrieve java version..."
+                        if (buildConfig.VARIANT == "openj9")
                         versionOut = readCrossCompiledVersionString()
                     } else {
                         versionOut = context.readFile("workspace/target/metadata/version.txt")
@@ -1104,7 +1105,7 @@ class Build {
                 try {
                     context.timeout(time: buildTimeouts.BUILD_ARCHIVE_TIMEOUT, unit: "HOURS") {
                         // We have already archived cross compiled artifacts, so only archive the metadata files
-                        if (buildConfig.BUILD_ARGS.contains('--cross-compile')) {
+                        if (buildConfig.BUILD_ARGS.contains('--cross-compile') && buildConfig.VARIANT == "openj9") {
                             context.println "[INFO] Archiving JSON Files..."
                             context.archiveArtifacts artifacts: "workspace/target/*.json"
                         } else {
