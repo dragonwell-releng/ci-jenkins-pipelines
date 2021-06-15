@@ -255,7 +255,7 @@ class Build {
             if (buildConfig.ARCHITECTURE != "riscv64") {
                 suffix = "adoptopenjdk/openjdk-${buildConfig.JAVA_TO_BUILD}"
             } else {
-                suffix = "openjdk/jdk-sandbox"
+                suffix = "riscv/riscv-openjdk"
             }
         } else if (buildConfig.VARIANT == "dragonwell") {
             suffix = "alibaba/dragonwell${javaNumber}"
@@ -1086,7 +1086,7 @@ class Build {
 
                     // Run a downstream job on riscv machine that returns the java version. Otherwise, just read the version.txt
                     String versionOut
-                    if (buildConfig.BUILD_ARGS.contains('--cross-compile')) {
+                    if (buildConfig.BUILD_ARGS.contains('--cross-compile') && buildConfig.VARIANT == "openj9") {
                         context.println "[WARNING] Don't read faked version.txt on cross compiled build! Archiving early and running downstream job to retrieve java version..."
                         versionOut = readCrossCompiledVersionString()
                     } else {
