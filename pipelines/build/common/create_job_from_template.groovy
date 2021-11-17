@@ -21,7 +21,7 @@ limitations under the License.
 
 String buildFolder = "$JOB_FOLDER"
 
-if (!binding.hasVariable('GIT_URL')) GIT_URL = "https://github.com/AdoptOpenJDK/ci-jenkins-pipelines.git"
+if (!binding.hasVariable('GIT_URL')) GIT_URL = "https://github.com/adoptium/ci-jenkins-pipelines.git"
 if (!binding.hasVariable('GIT_BRANCH')) GIT_BRANCH = "master"
 
 isLightweight = true
@@ -56,7 +56,24 @@ pipelineJob("$buildFolder/$JOB_NAME") {
         }
     }
     properties {
-	disableConcurrentBuilds()
+        // Hide all non Temurin builds from public view
+        if (VARIANT != "hotspot") {
+            authorizationMatrix {
+                inheritanceStrategy {
+                    // Do not inherit permissions from global configuration
+                    nonInheriting()
+                } 
+                permissions(['hudson.model.Item.Build:AdoptOpenJDK*build', 'hudson.model.Item.Build:AdoptOpenJDK*build-triage', 
+                'hudson.model.Item.Cancel:AdoptOpenJDK*build', 'hudson.model.Item.Cancel:AdoptOpenJDK*build-triage',
+                'hudson.model.Item.Configure:AdoptOpenJDK*build', 'hudson.model.Item.Configure:AdoptOpenJDK*build-triage',
+                'hudson.model.Item.Read:AdoptOpenJDK*build', 'hudson.model.Item.Read:AdoptOpenJDK*build-triage',
+                 // eclipse-temurin-bot needs read access for TRSS
+                'hudson.model.Item.Read:eclipse-temurin-bot',
+                'hudson.model.Item.Workspace:AdoptOpenJDK*build', 'hudson.model.Item.Workspace:AdoptOpenJDK*build-triage',
+                'hudson.model.Run.Update:AdoptOpenJDK*build', 'hudson.model.Run.Update:AdoptOpenJDK*build-triage'])
+            }
+        }
+        disableConcurrentBuilds()
         copyArtifactPermission {
             projectNames('*')
         }
@@ -67,14 +84,15 @@ pipelineJob("$buildFolder/$JOB_NAME") {
     }
 
     parameters {
-        stringParam('NODE_LABEL', "$NODE_LABEL")
         textParam('BUILD_CONFIGURATION', "$BUILD_CONFIG", """
             <dl>
                 <dt><strong>ARCHITECTURE</strong></dt><dd>x64, ppc64, s390x...</dd>
                 <dt><strong>TARGET_OS</strong></dt><dd>windows, linux, aix...</dd>
                 <dt><strong>VARIANT</strong></dt><dd>hotspot, openj9...</dd>
                 <dt><strong>JAVA_TO_BUILD</strong></dt><dd>i.e jdk11u, jdk12u...</dd>
-                <dt><strong>TEST_LIST</strong></dt><dd>Comma seperated list of tests, i.e: sanity.openjdk,sanity.perf,sanity.system</dd>
+                <dt><strong>TEST_LIST</strong></dt><dd>Comma separated list of tests, i.e: sanity.openjdk,sanity.perf,sanity.system</dd>
+                <dt><strong>DYNAMIC_LIST</strong></dt><dd>Comma separated list of tests, i.e: sanity.openjdk,sanity.perf,sanity.system</dd>
+                <dt><strong>NUM_MACHINES</strong></dt><dd>The number of machines for parallel=dynamic</dd>
                 <dt><strong>SCM_REF</strong></dt><dd>Source code ref to build, i.e branch, tag, commit id</dd>
                 <dt><strong>BUILD_ARGS</strong></dt><dd>args to pass to makejdk-any-platform.sh</dd>
                 <dt><strong>NODE_LABEL</strong></dt><dd>Labels of node to build on</dd>
@@ -84,7 +102,9 @@ pipelineJob("$buildFolder/$JOB_NAME") {
                 <dt><strong>CODEBUILD</strong></dt><dd>Use a dynamic codebuild machine if no other machine is available</dd>
                 <dt><strong>DOCKER_IMAGE</strong></dt><dd>Use a docker build environment</dd>
                 <dt><strong>DOCKER_FILE</strong></dt><dd>Relative path to a dockerfile to be built and used on top of the DOCKER_IMAGE</dd>
-                <dt><strong>PLATFORM_CONFIG_LOCATION</strong></dt><dd>Repo owner, branch name and relative path to the platform specific configuration for this paticular OS</dd>
+                <dt><strong>DOCKER_REGISTRY</strong></dt><dd>Custom Docker registry to pull DOCKER_IMAGE from</dd>
+                <dt><strong>DOCKER_CREDENTIAL</strong></dt><dd>Username & Password Jenkins credential ID for Docker registry login</dd>
+                <dt><strong>PLATFORM_CONFIG_LOCATION</strong></dt><dd>Repo owner, branch name and relative path to the platform specific configuration for the particular OS you are building (e.g. M-Davies/openjdk-build/my_branch/build-farm/platform-specific-configurations/linux.sh)</dd>
                 <dt><strong>CONFIGURE_ARGS</strong></dt><dd>Arguments for ./configure. Escape all speech marks used within this parameter.</dd>
                 <dt><strong>OVERRIDE_FILE_NAME_VERSION</strong></dt><dd>Set the version string on the file name</dd>
                 <dt><strong>USE_ADOPT_SHELL_SCRIPTS</strong></dt><dd>Use Adopt's make-adopt-build-farm.sh and other bash scripts</dd>

@@ -1,50 +1,43 @@
 targetConfigurations = [
         "x64Mac"      : [
-                "hotspot",
-                "openj9"
+                "hotspot"
         ],
         "x64Linux"    : [
-                "hotspot",
-                "openj9"
+                "hotspot"
         ],
         "x64AlpineLinux" : [
                 "hotspot"
         ],
         "x64Windows"  : [
-                "hotspot",
-                "openj9"
+                "hotspot"
         ],
         "x32Windows"  : [
                 "hotspot"
         ],
-        "aarch64Windows"  : [
+        "ppc64Aix"    : [
                 "hotspot"
         ],
-        "ppc64Aix"    : [
-                "hotspot",
-                "openj9"
-        ],
         "ppc64leLinux": [
-                "hotspot",
-                "openj9"
+                "hotspot"
         ],
         "s390xLinux"  : [
-                "hotspot",
-                "openj9"
+                "hotspot"
         ],
         "aarch64Linux": [
-                "hotspot",
-                "openj9"
+                "hotspot"
+        ],
+        "aarch64Mac": [
+                "hotspot"
         ],
         "arm32Linux"  : [
                 "hotspot"
         ]
 ]
 
-// 23:30 Mon, Wed, Fri
-triggerSchedule_nightly="TZ=UTC\n30 23 * * 1,3,5"
-// 04:30 Sun
-triggerSchedule_weekly="TZ=UTC\n30 04 * * 7"
+// 23:30 Tue, Thur
+triggerSchedule_nightly="TZ=UTC\n30 23 * * 2,4"
+// 23:30 Sat
+triggerSchedule_weekly="TZ=UTC\n30 23 * * 6"
 
 // scmReferences to use for weekly release build
 weekly_release_scmReferences=[

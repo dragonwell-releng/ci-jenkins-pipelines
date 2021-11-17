@@ -1,4 +1,4 @@
-class Config16 {
+class Config18 {
   final Map<String, Map<String, ?>> buildConfigurations = [
         x64Mac    : [
                 os                  : 'mac',
@@ -6,15 +6,6 @@ class Config16 {
                 additionalNodeLabels: 'macos10.14',
                 test                : 'default',
                 configureArgs       : '--enable-dtrace'
-        ],
-        
-        x64MacXL    : [
-                os                   : 'mac',
-                arch                 : 'x64',
-                additionalNodeLabels : 'macos10.14',
-                test                 : 'default',
-                additionalFileNameTag: "macosXL",
-                configureArgs        : '--with-noncompressedrefs --enable-dtrace'
         ],
 
         x64Linux  : [
@@ -25,43 +16,24 @@ class Config16 {
                         openj9      : 'adoptopenjdk/centos7_build_image'
                 ],
                 dockerFile: [
-                        openj9  : 'pipelines/build/dockerFiles/cuda.dockerfile'
+                        openj9      : 'pipelines/build/dockerFiles/cuda.dockerfile'
                 ],
                 test                : 'default',
                 additionalTestLabels: [
                         openj9      : '!(centos6||rhel6)'
                 ],
                 configureArgs       : [
-                        "openj9"      : '--enable-dtrace --enable-jitserver',
-                        "hotspot"     : '--enable-dtrace'
+                        "openj9"    : '--enable-dtrace --enable-jitserver',
+                        "hotspot"   : '--enable-dtrace'
                 ]
-        ],
-        
-        x64LinuxXL  : [
-                os                   : 'linux',
-                arch                 : 'x64',
-                dockerImage          : 'adoptopenjdk/centos7_build_image',
-                dockerFile: [
-                        openj9  : 'pipelines/build/dockerFiles/cuda.dockerfile'
-                ],
-                test                 : 'default',
-                additionalTestLabels: [
-                        openj9      : '!(centos6||rhel6)'
-                ],
-                additionalFileNameTag: "linuxXL",
-                configureArgs        : '--with-noncompressedrefs --enable-dtrace --enable-jitserver'
         ],
 
         x64AlpineLinux  : [
                 os                  : 'alpine-linux',
                 arch                : 'x64',
                 dockerImage         : 'adoptopenjdk/alpine3_build_image',
-                test                : [
-                        // TODO: enable tests
-                        nightly: [],
-                        // release: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external', 'special.functional']
-                        release: []
-                ]
+                test                : 'default',
+                configureArgs       : '--enable-headless-only=yes'
         ],
 
         x64Windows: [
@@ -70,16 +42,8 @@ class Config16 {
                 additionalNodeLabels: 'win2012&&vs2017',
                 test                : 'default'
         ],
-        
-        x64WindowsXL: [
-                os                   : 'windows',
-                arch                 : 'x64',
-                additionalNodeLabels : 'win2012&&vs2017',
-                test                 : 'default',
-                additionalFileNameTag: "windowsXL",
-                configureArgs        : '--with-noncompressedrefs'
-        ],
 
+        // TODO: Enable testing (https://github.com/adoptium/ci-jenkins-pipelines/issues/77)
         aarch64Windows: [
                 os                  : 'windows',
                 arch                : 'aarch64',
@@ -97,7 +61,7 @@ class Config16 {
                 os                  : 'windows',
                 arch                : 'x86-32',
                 additionalNodeLabels: 'win2012&&vs2017',
-                buildArgs : [
+                buildArgs           : [
                         hotspot : '--jvm-variant client,server'
                 ],
                 test                : 'default'
@@ -121,14 +85,6 @@ class Config16 {
                 test                : 'default',
                 configureArgs       : '--enable-dtrace'
         ],
-        
-        s390xLinuxXL  : [
-                os                   : 'linux',
-                arch                 : 's390x',
-                test                 : 'default',
-                additionalFileNameTag: "linuxXL",
-                configureArgs        : '--with-noncompressedrefs --enable-dtrace'
-        ],
 
         ppc64leLinux    : [
                 os                  : 'linux',
@@ -141,31 +97,21 @@ class Config16 {
                 ]
 
         ],
-        
-        ppc64leLinuxXL    : [
-                os                   : 'linux',
-                arch                 : 'ppc64le',
-                additionalNodeLabels : 'centos7',
-                test                 : 'default',
-                additionalFileNameTag: "linuxXL",
-                configureArgs        : '--with-noncompressedrefs --disable-ccache --enable-dtrace'
-        ],
 
         aarch64Linux    : [
                 os                  : 'linux',
                 arch                : 'aarch64',
                 dockerImage         : 'adoptopenjdk/centos7_build_image',
                 test                : 'default',
-                configureArgs       : '--enable-dtrace'
+                configureArgs : '--enable-dtrace',
+                testDynamic          : false
         ],
         
-        aarch64LinuxXL    : [
-                os                   : 'linux',
-                dockerImage          : 'adoptopenjdk/centos7_build_image',
-                arch                 : 'aarch64',
-                test                 : 'default',
-                additionalFileNameTag: "linuxXL",
-                configureArgs        : '--with-noncompressedrefs --enable-dtrace'
+        aarch64Mac: [
+                os                  : 'mac',
+                arch                : 'aarch64',
+                additionalNodeLabels: 'macos11',
+                test                : 'default'
         ],
 
         arm32Linux    : [
@@ -178,5 +124,5 @@ class Config16 {
 
 }
 
-Config16 config = new Config16()
+Config18 config = new Config18()
 return config.buildConfigurations

@@ -7,7 +7,8 @@ targetConfigurations = [
                 "hotspot",
                 "openj9",
                 "corretto",
-                "dragonwell"
+                "dragonwell",
+                "bisheng"
         ],
         "x32Windows"    : [
                 "hotspot",
@@ -33,9 +34,13 @@ targetConfigurations = [
         "aarch64Linux"  : [
                 "hotspot",
                 "openj9",
-                "dragonwell"
+                "dragonwell",
+                "bisheng"
         ],
         "arm32Linux"  : [
+                "hotspot"
+        ],
+        "x64Solaris": [
                 "hotspot"
         ],
         "sparcv9Solaris": [
@@ -53,7 +58,8 @@ weekly_release_scmReferences=[
         "hotspot"        : "",
         "openj9"         : "",
         "corretto"       : "",
-        "dragonwell"     : ""
+        "dragonwell"     : "",
+        "bisheng"        : ""
 ]
 
 return this

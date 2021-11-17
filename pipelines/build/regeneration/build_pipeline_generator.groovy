@@ -5,7 +5,11 @@ import groovy.json.JsonOutput
 node('master') {
   try {
     // Pull in Adopt defaults
+<<<<<<< HEAD
     String ADOPT_DEFAULTS_FILE_URL = "http://ci.dragonwell-jdk.io/userContent/config/defaults.json"
+=======
+    String ADOPT_DEFAULTS_FILE_URL = "https://raw.githubusercontent.com/adoptium/ci-jenkins-pipelines/master/pipelines/defaults.json"
+>>>>>>> upstream/master
     def getAdopt = new URL(ADOPT_DEFAULTS_FILE_URL).openConnection()
     Map<String, ?> ADOPT_DEFAULTS_JSON = new JsonSlurper().parseText(getAdopt.getInputStream().getText()) as Map
     if (!ADOPT_DEFAULTS_JSON || !Map.class.isInstance(ADOPT_DEFAULTS_JSON)) {
@@ -204,6 +208,8 @@ node('master') {
         if (useAdoptShellScripts.toBoolean()) {
           config.put("adoptScripts", true)
         }
+
+        config.put("enableTests", DEFAULTS_JSON['testDetails']['enableTests'] as Boolean)
 
         println "[INFO] JDK${javaVersion}: nightly pipelineSchedule = ${config.pipelineSchedule}"
 

@@ -15,14 +15,14 @@ class RepoHandlerTest {
 
     @Test
     void adoptDefaultsGetterReturns() {
-        RepoHandler handler = new RepoHandler(this, [:])
+        RepoHandler handler = new RepoHandler([:])
         Map adoptJson = handler.getAdoptDefaultsJson()
 
         // Repository
         Assertions.assertTrue(adoptJson.repository instanceof Map)
-        Assertions.assertEquals(adoptJson.repository.build_url, "https://github.com/AdoptOpenJDK/openjdk-build.git")
+        Assertions.assertEquals(adoptJson.repository.build_url, "https://github.com/adoptium/temurin-build.git")
         Assertions.assertEquals(adoptJson.repository.build_branch, "master")
-        Assertions.assertEquals(adoptJson.repository.pipeline_url, "https://github.com/AdoptOpenJDK/ci-jenkins-pipelines.git")
+        Assertions.assertEquals(adoptJson.repository.pipeline_url, "https://github.com/adoptium/ci-jenkins-pipelines.git")
         Assertions.assertEquals(adoptJson.repository.pipeline_branch, "master")
 
         // Jenkins Details
@@ -60,12 +60,17 @@ class RepoHandlerTest {
         Assertions.assertEquals(adoptJson.importLibraryScript, "pipelines/build/common/import_lib.groovy")
 
         // Defaults URL
-        Assertions.assertEquals(adoptJson.defaultsUrl, "https://raw.githubusercontent.com/AdoptOpenJDK/ci-jenkins-pipelines/master/pipelines/defaults.json")
+        Assertions.assertEquals(adoptJson.defaultsUrl, "https://raw.githubusercontent.com/adoptium/ci-jenkins-pipelines/master/pipelines/defaults.json")
+
+        // Test details
+        Assertions.assertTrue(adoptJson.testDetails.enableTests instanceof Boolean)
+        Assertions.assertTrue(adoptJson.testDetails.nightlyDefault instanceof List)
+        Assertions.assertTrue(adoptJson.testDetails.weeklyDefault instanceof List)
     }
 
     @Test
     void userDefaultsSetterAndGetterReturns() {
-        RepoHandler handler = new RepoHandler(this, [:])
+        RepoHandler handler = new RepoHandler([:])
         String fakeDefaults = new File(System.getProperty("user.dir") + '/src/test/groovy/fakeDefaults.json').text
         handler.setUserDefaultsJson(this, fakeDefaults)
         Map userJson = handler.getUserDefaultsJson()
@@ -113,11 +118,17 @@ class RepoHandlerTest {
 
         // Defaults URL
         Assertions.assertEquals(userJson.defaultsUrl, "23")
+
+        // Test details
+        Assertions.assertTrue(userJson.testDetails.enableTests instanceof Boolean)
+        Assertions.assertTrue(userJson.testDetails.enableTests)
+        Assertions.assertEquals(userJson.testDetails.nightlyDefault, [ "test1", "test2", "test3" ])
+        Assertions.assertEquals(userJson.testDetails.weeklyDefault, [ "test4", "test5", "test6" ])
     }
 
     @Test
     void userConfigGetterReturns() {
-        RepoHandler handler = new RepoHandler(this, testRemote)
+        RepoHandler handler = new RepoHandler(testRemote)
         Map userConfigsMap = handler.getUserRemoteConfigs()
 
         Assertions.assertEquals(userConfigsMap.branch, "foo")

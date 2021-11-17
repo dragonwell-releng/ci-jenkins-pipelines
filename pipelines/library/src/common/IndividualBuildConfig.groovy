@@ -9,6 +9,8 @@ class IndividualBuildConfig implements Serializable {
     final String VARIANT
     final String JAVA_TO_BUILD
     final List<String> TEST_LIST
+    final List<String> DYNAMIC_LIST
+    final String NUM_MACHINES
     final String SCM_REF
     final String BUILD_ARGS
     final String NODE_LABEL
@@ -19,6 +21,8 @@ class IndividualBuildConfig implements Serializable {
     final String DOCKER_IMAGE
     final String DOCKER_FILE
     final String DOCKER_NODE
+    final String DOCKER_REGISTRY
+    final String DOCKER_CREDENTIAL
     final String PLATFORM_CONFIG_LOCATION
     final String CONFIGURE_ARGS
     final String OVERRIDE_FILE_NAME_VERSION
@@ -53,6 +57,14 @@ class IndividualBuildConfig implements Serializable {
             TEST_LIST = []
         }
 
+        if (String.class.isInstance(map.get("DYNAMIC_LIST"))) {
+            DYNAMIC_LIST = map.get("DYNAMIC_LIST").split(",")
+        } else if (List.class.isInstance(map.get("DYNAMIC_LIST"))) {
+            DYNAMIC_LIST = map.get("DYNAMIC_LIST")
+        } else {
+            DYNAMIC_LIST = []
+        }        
+        NUM_MACHINES = map.get("NUM_MACHINES")
         SCM_REF = map.get("SCM_REF")
         BUILD_ARGS = map.get("BUILD_ARGS")
         NODE_LABEL = map.get("NODE_LABEL")
@@ -63,6 +75,8 @@ class IndividualBuildConfig implements Serializable {
         DOCKER_IMAGE = map.get("DOCKER_IMAGE")
         DOCKER_FILE = map.get("DOCKER_FILE")
         DOCKER_NODE = map.get("DOCKER_NODE")
+        DOCKER_REGISTRY = map.get("DOCKER_REGISTRY")
+        DOCKER_CREDENTIAL = map.get("DOCKER_CREDENTIAL")
         PLATFORM_CONFIG_LOCATION = map.get("PLATFORM_CONFIG_LOCATION")
         CONFIGURE_ARGS = map.get("CONFIGURE_ARGS")
         OVERRIDE_FILE_NAME_VERSION = map.get("OVERRIDE_FILE_NAME_VERSION")
@@ -102,6 +116,8 @@ class IndividualBuildConfig implements Serializable {
                 VARIANT                   : VARIANT,
                 JAVA_TO_BUILD             : JAVA_TO_BUILD,
                 TEST_LIST                 : TEST_LIST,
+                DYNAMIC_LIST              : DYNAMIC_LIST,
+                NUM_MACHINES              : NUM_MACHINES,
                 SCM_REF                   : SCM_REF,
                 BUILD_ARGS                : BUILD_ARGS,
                 NODE_LABEL                : NODE_LABEL,
@@ -112,6 +128,8 @@ class IndividualBuildConfig implements Serializable {
                 DOCKER_IMAGE              : DOCKER_IMAGE,
                 DOCKER_FILE               : DOCKER_FILE,
                 DOCKER_NODE               : DOCKER_NODE,
+                DOCKER_REGISTRY           : DOCKER_REGISTRY,
+                DOCKER_CREDENTIAL         : DOCKER_CREDENTIAL,
                 PLATFORM_CONFIG_LOCATION  : PLATFORM_CONFIG_LOCATION,
                 CONFIGURE_ARGS            : CONFIGURE_ARGS,
                 OVERRIDE_FILE_NAME_VERSION: OVERRIDE_FILE_NAME_VERSION,

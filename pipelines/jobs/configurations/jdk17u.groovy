@@ -17,9 +17,6 @@ targetConfigurations = [
         "x32Windows"  : [
                 "hotspot"
         ],
-        "aarch64Windows"  : [
-                "hotspot"
-        ],
         "ppc64Aix"    : [
                 "hotspot",
                 "openj9"
@@ -36,7 +33,13 @@ targetConfigurations = [
                 "hotspot",
                 "openj9"
         ],
+        "aarch64Mac": [
+                "hotspot"
+        ],
         "arm32Linux"  : [
+                "hotspot"
+        ],
+        "riscv64Linux"  : [
                 "hotspot"
         ]
 ]
