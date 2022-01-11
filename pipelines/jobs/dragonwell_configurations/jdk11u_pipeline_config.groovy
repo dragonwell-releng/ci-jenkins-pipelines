@@ -36,7 +36,8 @@ class Config11 {
                             "hotspot"   : '--enable-dtrace=auto',
                             "corretto"  : '--enable-dtrace=auto',
                             "SapMachine": '--enable-dtrace=auto',
-                            "dragonwell": '--enable-dtrace=auto --enable-unlimited-crypto --with-jvm-variants=server --with-zlib=system --with-jvm-features=zgc'
+                            "dragonwell": '--enable-dtrace=auto --enable-unlimited-crypto --with-jvm-variants=server --with-zlib=system --with-jvm-features=zgc',
+                            "fast_startup": '--enable-dtrace=auto',
                     ]
             ],
 

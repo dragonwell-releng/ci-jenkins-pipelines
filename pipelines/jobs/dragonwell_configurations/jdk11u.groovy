@@ -1,6 +1,7 @@
 targetConfigurations = [
         "x64Linux"    : [
-                "dragonwell"
+                "dragonwell",
+                "fast_startup"
         ],
         "x64Windows"  : [
                 "dragonwell"
@@ -26,7 +27,8 @@ weekly_release_scmReferences=[
         "hotspot"        : "",
         "openj9"         : "",
         "corretto"       : "",
-        "dragonwell"     : ""
+        "dragonwell"     : "",
+        "fast_startup"   : ""
 ]
 
 return this
