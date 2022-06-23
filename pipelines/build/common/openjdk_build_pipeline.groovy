@@ -264,7 +264,7 @@ class Build {
             throw new Exception("Unrecognised build variant: ${buildConfig.VARIANT} ")
         }
 
-        jdkRepo = "https://github.com/${suffix}"
+        jdkRepo = "https://hub.fastgit.xyz/${suffix}"
         if (buildConfig.BUILD_ARGS.count("--ssh") > 0) {
             jdkRepo = "git@github.com:${suffix}"
         }
@@ -319,6 +319,7 @@ class Build {
         def testStages = [:]
         def jdkBranch = getJDKBranch()
         def jdkRepo = getJDKRepo()
+        println "xxxx ${jdkRepo}"
         def openj9Branch = (buildConfig.SCM_REF && buildConfig.VARIANT == "openj9") ? buildConfig.SCM_REF : "master"
 
         def additionalTestLabel = buildConfig.ADDITIONAL_TEST_LABEL
