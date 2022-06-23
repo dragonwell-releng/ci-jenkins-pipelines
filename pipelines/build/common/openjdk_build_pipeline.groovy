@@ -1383,6 +1383,7 @@ class Build {
                                 repoHandler.setUserDefaultsJson(context, DEFAULTS_JSON)
                                 repoHandler.checkoutUserBuild(context)
                                 context.sh(script: "./${DEFAULTS_JSON['scriptDirectories']['buildfarm']}")
+                                context.sh(script: "git config --global http.sslVerify false")
                                 context.println "[CHECKOUT] Reverting pre-build user temurin-build checkout..."
                                 repoHandler.checkoutUserPipelines(context)
                             }
