@@ -28,7 +28,7 @@ class PullRequestTestPipeline implements Serializable {
     List<Integer> javaVersions
 
     String BUILD_FOLDER = "build-scripts-pr-tester/build-test"
-    String ADOPT_DEFAULTS_FILE_URL = "https://raw.githubusercontent.com/AdoptOpenJDK/ci-jenkins-pipelines/master/pipelines/defaults.json"
+    String ADOPT_DEFAULTS_FILE_URL = "https://raw.githubusercontent.com/adoptium/ci-jenkins-pipelines/master/pipelines/defaults.json"
     def getAdopt = new URL(ADOPT_DEFAULTS_FILE_URL).openConnection()
     Map<String, ?> ADOPT_DEFAULTS_JSON = new JsonSlurper().parseText(getAdopt.getInputStream().getText()) as Map
 
@@ -52,7 +52,9 @@ class PullRequestTestPipeline implements Serializable {
                 defaultsJson        : DEFAULTS_JSON,
                 adoptDefaultsJson   : ADOPT_DEFAULTS_JSON,
                 CHECKOUT_CREDENTIALS: "",
-                adoptScripts        : true
+                adoptScripts        : true,
+                enableTests         : false,
+                enableTestDynamicParallel : false
         ]
     }
 
@@ -110,7 +112,7 @@ class PullRequestTestPipeline implements Serializable {
                 currentBuild,
                 context,
                 "build-scripts-pr-tester/build-test",
-                [url: gitRepo],
+                [ url: gitRepo ],
                 branch,
                 DEFAULTS_JSON["templateDirectories"]["downstream"],
                 DEFAULTS_JSON["importLibraryScript"],
@@ -119,7 +121,7 @@ class PullRequestTestPipeline implements Serializable {
                 "https://ci.adoptopenjdk.net/job/build-scripts-pr-tester/job/build-test",
                 null,
                 null,
-                ""
+                true
             ).regenerate()
 
             context.println "[SUCCESS] All done!"
@@ -157,22 +159,23 @@ class PullRequestTestPipeline implements Serializable {
 
 Map<String, ?> defaultTestConfigurations = [
     "x64Linux": [
-        "hotspot",
-        "openj9"
+        "temurin"
+    ],
+    "x64AlpineLinux" : [
+        "temurin"
     ],
     "aarch64Linux": [
-        "hotspot",
-        "openj9"
+        "temurin"
     ],
     "x64Windows": [
-        "hotspot"
+        "temurin"
     ],
     "x64Mac": [
-        "hotspot"
+        "temurin"
     ]
 ]
 
-List<Integer> defaultJavaVersions = [8, 11, 16, 17]
+List<Integer> defaultJavaVersions = [8, 11, 17, 18, 19]
 
 return {
     String branch,

@@ -9,7 +9,11 @@ class IndividualBuildConfig implements Serializable {
     final String VARIANT
     final String JAVA_TO_BUILD
     final List<String> TEST_LIST
+    final List<String> DYNAMIC_LIST
+    final List<String> NUM_MACHINES
     final String SCM_REF
+    final String AQA_REF
+    final boolean AQA_AUTO_GEN
     final String BUILD_ARGS
     final String NODE_LABEL
     final String ADDITIONAL_TEST_LABEL
@@ -19,6 +23,8 @@ class IndividualBuildConfig implements Serializable {
     final String DOCKER_IMAGE
     final String DOCKER_FILE
     final String DOCKER_NODE
+    final String DOCKER_REGISTRY
+    final String DOCKER_CREDENTIAL
     final String PLATFORM_CONFIG_LOCATION
     final String CONFIGURE_ARGS
     final String OVERRIDE_FILE_NAME_VERSION
@@ -29,6 +35,7 @@ class IndividualBuildConfig implements Serializable {
     final String PUBLISH_NAME
     final String ADOPT_BUILD_NUMBER
     final boolean ENABLE_TESTS
+    final boolean ENABLE_TESTDYNAMICPARALLEL
     final boolean ENABLE_INSTALLERS
     final boolean ENABLE_SIGNER
     final boolean CLEAN_WORKSPACE
@@ -40,10 +47,10 @@ class IndividualBuildConfig implements Serializable {
     }
 
     IndividualBuildConfig(Map<String, ?> map) {
-        ARCHITECTURE = map.get("ARCHITECTURE")
-        TARGET_OS = map.get("TARGET_OS")
-        VARIANT = map.get("VARIANT")
-        JAVA_TO_BUILD = map.get("JAVA_TO_BUILD")
+        ARCHITECTURE = map.get("ARCHITECTURE") != null ? map.get("ARCHITECTURE").trim() : null
+        TARGET_OS = map.get("TARGET_OS") != null ? map.get("TARGET_OS").trim() : null
+        VARIANT = map.get("VARIANT") != null ? map.get("VARIANT").trim() : null
+        JAVA_TO_BUILD = map.get("JAVA_TO_BUILD")!= null ? map.get("JAVA_TO_BUILD").trim() : null
 
         if (String.class.isInstance(map.get("TEST_LIST"))) {
             TEST_LIST = map.get("TEST_LIST").split(",")
@@ -53,26 +60,47 @@ class IndividualBuildConfig implements Serializable {
             TEST_LIST = []
         }
 
-        SCM_REF = map.get("SCM_REF")
-        BUILD_ARGS = map.get("BUILD_ARGS")
-        NODE_LABEL = map.get("NODE_LABEL")
-        ADDITIONAL_TEST_LABEL = map.get("ADDITIONAL_TEST_LABEL")
+        if (String.class.isInstance(map.get("DYNAMIC_LIST"))) {
+            DYNAMIC_LIST = map.get("DYNAMIC_LIST").split(",")
+        } else if (List.class.isInstance(map.get("DYNAMIC_LIST"))) {
+            DYNAMIC_LIST = map.get("DYNAMIC_LIST")
+        } else {
+            DYNAMIC_LIST = []
+        }
+
+        if (String.class.isInstance(map.get("NUM_MACHINES"))) {
+            NUM_MACHINES = map.get("NUM_MACHINES").split(",")
+        } else if (List.class.isInstance(map.get("NUM_MACHINES"))) {
+            NUM_MACHINES = map.get("NUM_MACHINES")
+        } else {
+            NUM_MACHINES = []
+        }
+
+        SCM_REF = map.get("SCM_REF") != null ? map.get("SCM_REF").trim() : null
+        AQA_REF = map.get("AQA_REF") != null ? map.get("AQA_REF").trim() : null
+        AQA_AUTO_GEN = map.get("AQA_AUTO_GEN")
+        BUILD_ARGS = map.get("BUILD_ARGS") != null ? map.get("BUILD_ARGS").trim() : null
+        NODE_LABEL = map.get("NODE_LABEL") != null ? map.get("NODE_LABEL").trim() : null
+        ADDITIONAL_TEST_LABEL = map.get("ADDITIONAL_TEST_LABEL") != null ? map.get("ADDITIONAL_TEST_LABEL").trim() : null
         KEEP_TEST_REPORTDIR = map.get("KEEP_TEST_REPORTDIR")
-        ACTIVE_NODE_TIMEOUT = map.get("ACTIVE_NODE_TIMEOUT")
+        ACTIVE_NODE_TIMEOUT = map.get("ACTIVE_NODE_TIMEOUT") != null ? map.get("ACTIVE_NODE_TIMEOUT").trim() : null
         CODEBUILD = map.get("CODEBUILD")
-        DOCKER_IMAGE = map.get("DOCKER_IMAGE")
-        DOCKER_FILE = map.get("DOCKER_FILE")
-        DOCKER_NODE = map.get("DOCKER_NODE")
-        PLATFORM_CONFIG_LOCATION = map.get("PLATFORM_CONFIG_LOCATION")
-        CONFIGURE_ARGS = map.get("CONFIGURE_ARGS")
-        OVERRIDE_FILE_NAME_VERSION = map.get("OVERRIDE_FILE_NAME_VERSION")
+        DOCKER_IMAGE = map.get("DOCKER_IMAGE") != null ? map.get("DOCKER_IMAGE").trim() : null
+        DOCKER_FILE = map.get("DOCKER_FILE") != null ? map.get("DOCKER_FILE").trim() : null
+        DOCKER_NODE = map.get("DOCKER_NODE") != null ? map.get("DOCKER_NODE").trim() : null
+        DOCKER_REGISTRY = map.get("DOCKER_REGISTRY") != null ? map.get("DOCKER_REGISTRY").trim() : null
+        DOCKER_CREDENTIAL = map.get("DOCKER_CREDENTIAL") != null ? map.get("DOCKER_CREDENTIAL").trim() : null
+        PLATFORM_CONFIG_LOCATION = map.get("PLATFORM_CONFIG_LOCATION") != null ? map.get("PLATFORM_CONFIG_LOCATION").trim() : null
+        CONFIGURE_ARGS = map.get("CONFIGURE_ARGS") != null ? map.get("CONFIGURE_ARGS").trim() : null
+        OVERRIDE_FILE_NAME_VERSION = map.get("OVERRIDE_FILE_NAME_VERSION") != null ? map.get("OVERRIDE_FILE_NAME_VERSION").trim() : null
         USE_ADOPT_SHELL_SCRIPTS = map.get("USE_ADOPT_SHELL_SCRIPTS")
-        ADDITIONAL_FILE_NAME_TAG = map.get("ADDITIONAL_FILE_NAME_TAG")
-        JDK_BOOT_VERSION = map.get("JDK_BOOT_VERSION")
+        ADDITIONAL_FILE_NAME_TAG = map.get("ADDITIONAL_FILE_NAME_TAG") != null ? map.get("ADDITIONAL_FILE_NAME_TAG").trim() : null
+        JDK_BOOT_VERSION = map.get("JDK_BOOT_VERSION") != null ? map.get("JDK_BOOT_VERSION").trim() : null
         RELEASE = map.get("RELEASE")
-        PUBLISH_NAME = map.get("PUBLISH_NAME")
-        ADOPT_BUILD_NUMBER = map.get("ADOPT_BUILD_NUMBER")
+        PUBLISH_NAME = map.get("PUBLISH_NAME") != null ? map.get("PUBLISH_NAME").trim() : null
+        ADOPT_BUILD_NUMBER = map.get("ADOPT_BUILD_NUMBER") != null ? map.get("ADOPT_BUILD_NUMBER").trim() : null
         ENABLE_TESTS = map.get("ENABLE_TESTS")
+        ENABLE_TESTDYNAMICPARALLEL = map.get("ENABLE_TESTDYNAMICPARALLEL")
         ENABLE_INSTALLERS = map.get("ENABLE_INSTALLERS")
         ENABLE_SIGNER = map.get("ENABLE_SIGNER")
         CLEAN_WORKSPACE = map.get("CLEAN_WORKSPACE")
@@ -102,7 +130,11 @@ class IndividualBuildConfig implements Serializable {
                 VARIANT                   : VARIANT,
                 JAVA_TO_BUILD             : JAVA_TO_BUILD,
                 TEST_LIST                 : TEST_LIST,
+                DYNAMIC_LIST              : DYNAMIC_LIST,
+                NUM_MACHINES              : NUM_MACHINES,
                 SCM_REF                   : SCM_REF,
+                AQA_REF                   : AQA_REF,
+                AQA_AUTO_GEN              : AQA_AUTO_GEN,
                 BUILD_ARGS                : BUILD_ARGS,
                 NODE_LABEL                : NODE_LABEL,
                 ADDITIONAL_TEST_LABEL     : ADDITIONAL_TEST_LABEL,
@@ -112,6 +144,8 @@ class IndividualBuildConfig implements Serializable {
                 DOCKER_IMAGE              : DOCKER_IMAGE,
                 DOCKER_FILE               : DOCKER_FILE,
                 DOCKER_NODE               : DOCKER_NODE,
+                DOCKER_REGISTRY           : DOCKER_REGISTRY,
+                DOCKER_CREDENTIAL         : DOCKER_CREDENTIAL,
                 PLATFORM_CONFIG_LOCATION  : PLATFORM_CONFIG_LOCATION,
                 CONFIGURE_ARGS            : CONFIGURE_ARGS,
                 OVERRIDE_FILE_NAME_VERSION: OVERRIDE_FILE_NAME_VERSION,
@@ -122,6 +156,7 @@ class IndividualBuildConfig implements Serializable {
                 PUBLISH_NAME              : PUBLISH_NAME,
                 ADOPT_BUILD_NUMBER        : ADOPT_BUILD_NUMBER,
                 ENABLE_TESTS              : ENABLE_TESTS,
+                ENABLE_TESTDYNAMICPARALLEL: ENABLE_TESTDYNAMICPARALLEL,
                 ENABLE_INSTALLERS         : ENABLE_INSTALLERS,
                 ENABLE_SIGNER             : ENABLE_SIGNER,
                 CLEAN_WORKSPACE           : CLEAN_WORKSPACE,

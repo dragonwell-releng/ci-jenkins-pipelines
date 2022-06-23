@@ -2,35 +2,51 @@
 
 # Generates markdown table of build job status
 
-echo "| Platform                  | Java 8 | Java 11| Java 15 | Java 16 | Java HEAD |"
-echo "| ------------------------- | ------ | ------ | ------- | ------- | --------- |"
+allPlatforms=("jdk8u" "jdk11u" "jdk17u" "jdk18u" "jdk")
+buildFile="/tmp/build.txt"
+buildJobFile="/tmp/build_jobs.txt"
 
-if [[ -f "/tmp/build.txt" ]]; then
-  echo "Removing previous /tmp/build.txt file"
-  rm "/tmp/build.txt"
+if [[ -f ${buildFile} ]]; then
+  echo "Removing previous ${buildFile} ${buildJobFile} files"
+  rm ${buildFile}
+  rm ${buildJobFile}
 fi
-for i in "jdk8u" "jdk11u" "jdk15" "jdk16" "jdk";
+
+for i in ${allPlatforms[@]};
 do
-    curl -s "https://ci.adoptopenjdk.net/job/build-scripts/job/jobs/job/${i}/" | egrep -o "job/${i}-[^\/]+" >> "/tmp/build.txt"
+    curl -s "https://ci.adoptopenjdk.net/job/build-scripts/job/jobs/job/${i}/" | egrep -o "job/${i}-[^\/]+" >> ${buildJobFile}
 done
 
 # The sed command fails on Mac OS X, but those users can install gnu-sed
-echo "Writing out build status to /tmp/build.txt - take the contents of this file and update README.md with it."
 echo "This will take a few minutes to complete."
-cat "/tmp/build.txt" | cut -d'/' -f2 | sed -r 's/jdk[0-9]+u?\-//g' | sort | uniq | while read buildName;
+# Header row
+echo -n "| Platform |" > ${buildFile}
+for p in ${allPlatforms[@]};do
+  echo -n " ${p} |" | sed -e 's/jdk/Java /;s/u//;s/  / HEAD/' >> ${buildFile}
+done
+# Delimiter row
+echo -n $'\n|------' >> ${buildFile} # to match Platform column
+for i in ${allPlatforms[@]} ;do
+  echo -n "|----" >> ${buildFile}
+done
+echo "|" >> ${buildFile}
+
+cat ${buildJobFile}| cut -d'/' -f2 | sed -r 's/jdk[0-9]*u?\-//g' | sort | uniq | while read buildName;
 do
     # buildName should be of the form: aix-ppc64-hotspot
-    echo -n "| ${buildName} | "
-    for i in "jdk8u" "jdk11u" "jdk15" "jdk16" "jdk";
+    echo -n "| ${buildName} | " >> ${buildFile}
+    for i in ${allPlatforms[@]};
     do
-        code=$(curl -s -o /dev/null -w "%{http_code}" "https://ci.adoptopenjdk.net/buildStatus/icon?job=build-scripts/jobs/${i}/${i}-${buildName}")
+        code=$(curl -L -s -o /dev/null -w "%{http_code}" "https://ci.adoptopenjdk.net/job/build-scripts/job/jobs/job/${i}/job/${i}-${buildName}")
         if [[ ${code} = 200 ]]; then
-            echo -n "[![Build Status](https://ci.adoptopenjdk.net/buildStatus/icon?job=build-scripts/jobs/${i}/${i}-${buildName})](https://ci.adoptopenjdk.net/job/build-scripts/job/jobs/job/${i}/job/${i}-${buildName})"
+            echo -n "[![Build Status](https://ci.adoptopenjdk.net/buildStatus/icon?job=build-scripts/jobs/${i}/${i}-${buildName})](https://ci.adoptopenjdk.net/job/build-scripts/job/jobs/job/${i}/job/${i}-${buildName})" >> "/tmp/build.txt"
         else
-            echo -n "N/A"
+            echo -n "N/A" >> ${buildFile}
         fi
 
-        echo -n " | "
+        echo -n " | " >> ${buildFile}
     done
-    echo ""
+    echo "" >> ${buildFile}
 done
+
+echo "Complete - markdown out has been generated in ${buildFile}"

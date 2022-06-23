@@ -29,7 +29,7 @@ class Regeneration implements Serializable {
     private final Map<String, ?> targetConfigurations
     private final Map<String, ?> DEFAULTS_JSON
     private final Map<String, ?> excludedBuilds
-    private final Integer sleepTime
+    private Integer sleepTime
     private final def currentBuild
     private final def context
 
@@ -44,6 +44,7 @@ class Regeneration implements Serializable {
     private final def jenkinsBuildRoot
     private final def jenkinsCreds
     private final def checkoutCreds
+    private final Boolean prBuilder
 
     private String javaToBuild
     private final List<String> defaultTestList = ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external']
@@ -71,13 +72,15 @@ class Regeneration implements Serializable {
         String scriptPath,
         String jenkinsBuildRoot,
         String jenkinsCreds,
-        String checkoutCreds
+        String checkoutCreds,
+        Boolean prBuilder
     ) {
         this.javaVersion = javaVersion
         this.buildConfigurations = buildConfigurations
         this.targetConfigurations = targetConfigurations
         this.DEFAULTS_JSON = DEFAULTS_JSON
         this.excludedBuilds = excludedBuilds
+        this.sleepTime = sleepTime
         this.currentBuild = currentBuild
         this.context = context
         this.jobRootDir = jobRootDir
@@ -90,6 +93,7 @@ class Regeneration implements Serializable {
         this.jenkinsBuildRoot = jenkinsBuildRoot
         this.jenkinsCreds = jenkinsCreds
         this.checkoutCreds = checkoutCreds
+        this.prBuilder = prBuilder
     }
 
     /*
@@ -116,13 +120,24 @@ class Regeneration implements Serializable {
     }
 
     def getArchLabel(Map<String, ?> configuration, String variant) {
-        def archLabelVal = ""
+        // Default to arch
+        def archLabelVal = configuration.arch
+
         // Workaround for cross compiled architectures
         if (configuration.containsKey("crossCompile")) {
-            archLabelVal = configuration.crossCompile
-        } else {
-            archLabelVal = configuration.arch
+            def configArchLabelVal
+
+            if (isMap(configuration.crossCompile)) {
+                configArchLabelVal = (configuration.crossCompile as Map<String, ?>).get(variant)
+            } else {
+                configArchLabelVal = configuration.crossCompile
+            }
+
+            if (configArchLabelVal != null) {
+                archLabelVal = configArchLabelVal
+            }
         }
+
         return archLabelVal
     }
 
@@ -178,19 +193,52 @@ class Regeneration implements Serializable {
     }
 
     /*
+    Retrieves the dockerRegistry attribute from the build configurations.
+    This is used to pull dockerImage from a custom registry.
+    If not specified, defaults to '' which will be DockerHub.
+    */
+    def getDockerRegistry(Map<String, ?> configuration, String variant) {
+        def dockerRegistryValue = ""
+        if (configuration.containsKey("dockerRegistry")) {
+            if (isMap(configuration.dockerRegistry)) {
+                dockerRegistryValue = (configuration.dockerRegistry as Map<String, ?>).get(variant)
+            } else {
+                dockerRegistryValue = configuration.dockerRegistry
+            }
+        }
+        return dockerRegistryValue
+    }
+
+    /*
+    Retrieves the dockerCredential attribute from the build configurations.
+    If used, this will wrap the docker pull with a docker login.
+    */
+    def getDockerCredential(Map<String, ?> configuration, String variant) {
+        def dockerCredentialValue = ""
+        if (configuration.containsKey("dockerCredential")) {
+            if (isMap(configuration.dockerCredential)) {
+                dockerCredentialValue = (configuration.dockerCredential as Map<String, ?>).get(variant)
+            } else {
+                dockerCredentialValue = configuration.dockerCredential
+            }
+        }
+        return dockerCredentialValue
+    }
+
+    /*
     Retrieves the platformSpecificConfigPath from the build configurations.
     This determines where the location of the operating system setup files are in comparison to the repository root. The param is formatted like this because we need to download and source the file from the bash scripts.
     */
     def getPlatformSpecificConfigPath(Map<String, ?> configuration) {
         def splitUserUrl = ((String)DEFAULTS_JSON['repository']['build_url']).minus(".git").split('/')
-        // e.g. https://github.com/AdoptOpenJDK/openjdk-build.git will produce AdoptOpenJDK/openjdk-build
+        // e.g. https://github.com/adoptium/temurin-build.git will produce adoptium/temurin-build
         String userOrgRepo = "${splitUserUrl[splitUserUrl.size() - 2]}/${splitUserUrl[splitUserUrl.size() - 1]}"
 
-        // e.g. AdoptOpenJDK/openjdk-build/master/build-farm/platform-specific-configurations
+        // e.g. adoptium/temurin-build/master/build-farm/platform-specific-configurations
         def platformSpecificConfigPath = "${userOrgRepo}/${DEFAULTS_JSON['repository']['build_branch']}/${DEFAULTS_JSON['configDirectories']['platform']}"
 
         if (configuration.containsKey("platformSpecificConfigPath")) {
-            // e.g. AdoptOpenJDK/openjdk-build/master/build-farm/platform-specific-configurations.linux.sh
+            // e.g. adoptium/temurin-build/master/build-farm/platform-specific-configurations.linux.sh
             platformSpecificConfigPath = "${userOrgRepo}/${DEFAULTS_JSON['repository']['build_branch']}/${configuration.platformSpecificConfigPath}"
         }
         return platformSpecificConfigPath
@@ -284,7 +332,15 @@ class Regeneration implements Serializable {
         testList.unique()
         return testList
     }
-
+    /*
+    * Get the list of tests to dynamically run  parallel builds from the build configurations. Used as a placeholder since the pipelines overwrite this
+    * @param configuration
+    */
+    Map<String, ?> getDynamicParams() {
+        List<String> testLists = DEFAULTS_JSON["testDetails"]["defaultDynamicParas"]["testLists"]
+        List<String> numMachines = DEFAULTS_JSON["testDetails"]["defaultDynamicParas"]["numMachines"]
+        return ["testLists": testLists, "numMachines": numMachines]
+    }
     /*
     * Checks if the platform/arch/variant is in the EXCLUDES_LIST Parameter.
     * @param configuration
@@ -299,10 +355,6 @@ class Regeneration implements Serializable {
         String stringArch = configuration.arch as String
         String stringOs = configuration.os as String
         String estimatedKey = stringArch + stringOs.capitalize()
-
-        if (configuration.containsKey("additionalFileNameTag")) {
-            estimatedKey = estimatedKey + "XL"
-        }
 
         if (excludedBuilds.containsKey(estimatedKey)) {
 
@@ -342,19 +394,31 @@ class Regeneration implements Serializable {
 
             def dockerNode = getDockerNode(platformConfig, variant)
 
+            def dockerRegistry = getDockerRegistry(platformConfig, variant)
+
+            def dockerCredential = getDockerCredential(platformConfig, variant)
+
             def platformSpecificConfigPath = getPlatformSpecificConfigPath(platformConfig)
 
             def buildArgs = getBuildArgs(platformConfig, variant)
 
             def testList = getTestList(platformConfig)
 
-            return new IndividualBuildConfig( // final build config
+            def dynamicList = getDynamicParams().get("testLists")
+
+            def numMachines = getDynamicParams().get("numMachines")
+
+           return new IndividualBuildConfig( // final build config
                 JAVA_TO_BUILD: javaToBuild,
                 ARCHITECTURE: platformConfig.arch as String,
                 TARGET_OS: platformConfig.os as String,
                 VARIANT: variant,
                 TEST_LIST: testList,
+                DYNAMIC_LIST: dynamicList,
+                NUM_MACHINES: numMachines,
                 SCM_REF: "",
+                AQA_REF: "",
+                AQA_AUTO_GEN: false,
                 BUILD_ARGS: buildArgs,
                 NODE_LABEL: "${additionalNodeLabels}&&${platformConfig.os}&&${archLabel}",
                 ADDITIONAL_TEST_LABEL: "${additionalTestLabels}",
@@ -364,6 +428,8 @@ class Regeneration implements Serializable {
                 DOCKER_IMAGE: dockerImage,
                 DOCKER_FILE: dockerFile,
                 DOCKER_NODE: dockerNode,
+                DOCKER_REGISTRY: dockerRegistry,
+                DOCKER_CREDENTIAL: dockerCredential,
                 PLATFORM_CONFIG_LOCATION: platformSpecificConfigPath,
                 CONFIGURE_ARGS: getConfigureArgs(platformConfig, variant),
                 OVERRIDE_FILE_NAME_VERSION: "",
@@ -373,7 +439,8 @@ class Regeneration implements Serializable {
                 RELEASE: false,
                 PUBLISH_NAME: "",
                 ADOPT_BUILD_NUMBER: "",
-                ENABLE_TESTS: true,
+                ENABLE_TESTS: DEFAULTS_JSON['testDetails']['enableTests'] as Boolean,
+                ENABLE_TESTDYNAMICPARALLEL: DEFAULTS_JSON['testDetails']['enableTestDynamicParallel'] as Boolean,
                 ENABLE_INSTALLERS: true,
                 ENABLE_SIGNER: true,
                 CLEAN_WORKSPACE: true,
@@ -403,6 +470,7 @@ class Regeneration implements Serializable {
         Map<String, ?> params = config.toMap().clone() as Map
         params.put("JOB_NAME", jobName)
         params.put("JOB_FOLDER", jobFolder)
+        params.put("VARIANT", config.VARIANT)
         params.put("SCRIPT_PATH", scriptPath)
 
         params.put("GIT_URL", gitRemoteConfigs['url'])
@@ -414,7 +482,8 @@ class Regeneration implements Serializable {
         userRemoteConfigs.remotes = gitRemoteConfigs
         params.put("USER_REMOTE_CONFIGS", JsonOutput.prettyPrint(JsonOutput.toJson(userRemoteConfigs)))
 
-        def repoHandler = new RepoHandler(context, userRemoteConfigs)
+        def repoHandler = new RepoHandler(userRemoteConfigs)
+        repoHandler.setUserDefaultsJson(context, DEFAULTS_JSON)
 
         params.put("DEFAULTS_JSON", JsonOutput.prettyPrint(JsonOutput.toJson(DEFAULTS_JSON)))
         Map ADOPT_DEFAULTS_JSON = repoHandler.getAdoptDefaultsJson()
@@ -437,15 +506,20 @@ class Regeneration implements Serializable {
             params.put("CHECKOUT_CREDENTIALS", "")
         }
 
+        // Make sure the dsl knows if we're building inside the pr tester
+        if (prBuilder) {
+            params.put("PR_BUILDER", true)
+        }
+
         // Execute job dsl, using adopt's template if the user doesn't have one
         def create = null
         try {
             create = context.jobDsl targets: jobTemplatePath, ignoreExisting: false, additionalParameters: params
         } catch (Exception e) {
             context.println "[WARNING] Something went wrong when creating the job dsl. It may be because we are trying to pull the template inside a user repository. Using Adopt's template instead. Error:\n${e}"
-            repoHandler.checkoutAdoptPipelines()
+            repoHandler.checkoutAdoptPipelines(context)
             create = context.jobDsl targets: ADOPT_DEFAULTS_JSON['templateDirectories']['downstream'], ignoreExisting: false, additionalParameters: params
-            repoHandler.checkoutUserPipelines()
+            repoHandler.checkoutUserPipelines(context)
         }
 
         return create
@@ -497,7 +571,7 @@ class Regeneration implements Serializable {
     }
 
     /**
-    * Main function. Ran from jdkxx_regeneration_pipeline.groovy, this will be what jenkins will run first.
+    * Main function. Ran from build_job_generator.groovy, this will be what jenkins will run first.
     */
     @SuppressWarnings("unused")
     def regenerate() {
@@ -510,7 +584,7 @@ class Regeneration implements Serializable {
             context.stage("Check $javaVersion pipeline status") {
 
                 if (jobRootDir.contains("pr-tester")) {
-                    // No need to check if we're going to overwrite anything for the PR tester since concurrency isn't enabled -> https://github.com/AdoptOpenJDK/openjdk-build/pull/2155
+                    // No need to check if we're going to overwrite anything for the PR tester since concurrency isn't enabled -> https://github.com/adoptium/temurin-build/pull/2155
                     context.println "[SUCCESS] Don't need to check if the pr-tester is running as concurrency is disabled. Running regeneration job..."
                 } else {
                     // Get all pipelines
@@ -541,6 +615,10 @@ class Regeneration implements Serializable {
                                 }
 
                                 if (inProgress) {
+                                    // Null safety check sleep as sleeping null may cause jenkins DoS
+                                    if (!sleepTime) {
+                                        sleepTime = 900
+                                    }
                                     // Sleep for a bit, then check again...
                                     context.println "[INFO] ${pipeline} is running. Sleeping for ${sleepTime} seconds while waiting for ${pipeline} to complete..."
 
@@ -565,7 +643,7 @@ class Regeneration implements Serializable {
             context.stage("Regenerate $javaVersion pipeline jobs") {
 
                 // If we're building jdk head, update the javaToBuild
-                context.println "[INFO] Querying adopt api to get the JDK-Head number"
+                context.println "[INFO] Querying Adoptium api to get the JDK-Head number"
 
                 def JobHelper = context.library(identifier: 'openjdk-jenkins-helper@master').JobHelper
                 Integer jdkHeadNum = Integer.valueOf(JobHelper.getAvailableReleases(context).tip_version)
@@ -659,7 +737,8 @@ return {
     String scriptPath,
     String jenkinsBuildRoot,
     String jenkinsCreds,
-    String checkoutCreds
+    String checkoutCreds,
+    Boolean prBuilder
         ->
 
         def excludedBuilds = [:]
@@ -685,6 +764,7 @@ return {
             scriptPath,
             jenkinsBuildRoot,
             jenkinsCreds,
-            checkoutCreds
+            checkoutCreds,
+            prBuilder
         )
 }

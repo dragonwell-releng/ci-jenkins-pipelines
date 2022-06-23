@@ -39,12 +39,15 @@ class Builder implements Serializable {
     String activeNodeTimeout
     Map<String, List<String>> dockerExcludes
     boolean enableTests
+    boolean enableTestDynamicParallel
     boolean enableInstallers
     boolean enableSigner
     boolean publish
     boolean release
     String releaseType
     String scmReference
+    String aqaReference
+    boolean aqaAutoGen
     String publishName
     String additionalConfigureArgs
     def scmVars
@@ -127,6 +130,10 @@ class Builder implements Serializable {
 
         def dockerNode = getDockerNode(platformConfig, variant)
 
+        def dockerRegistry = getDockerRegistry(platformConfig, variant)
+
+        def dockerCredential = getDockerCredential(platformConfig, variant)
+
         def platformSpecificConfigPath = getPlatformSpecificConfigPath(platformConfig)
 
         def buildArgs = getBuildArgs(platformConfig, variant)
@@ -135,11 +142,15 @@ class Builder implements Serializable {
             buildArgs += " " + additionalBuildArgs
         }
 
-        def testList = getTestList(platformConfig)
+        def testList = getTestList(platformConfig, variant)
+
+        def dynamicTestsParameters = getDynamicParams(platformConfig, variant)
+        def dynamicList = dynamicTestsParameters.get("testLists")
+        def numMachines = dynamicTestsParameters.get("numMachines")
 
         def platformCleanWorkspaceAfterBuild = getCleanWorkspaceAfterBuild(platformConfig)
 
-        // Always clean on mac due to https://github.com/AdoptOpenJDK/openjdk-build/issues/1980
+        // Always clean on mac due to https://github.com/adoptium/temurin-build/issues/1980
         def cleanWorkspace = cleanWorkspaceBeforeBuild
         if (platformConfig.os == "mac") {
             cleanWorkspace = true
@@ -157,7 +168,11 @@ class Builder implements Serializable {
             TARGET_OS: platformConfig.os as String,
             VARIANT: variant,
             TEST_LIST: testList,
+            DYNAMIC_LIST: dynamicList,
+            NUM_MACHINES: numMachines,
             SCM_REF: scmReference,
+            AQA_REF: aqaReference,
+            AQA_AUTO_GEN: aqaAutoGen,
             BUILD_ARGS: buildArgs,
             NODE_LABEL: "${additionalNodeLabels}&&${platformConfig.os}&&${archLabel}",
             ADDITIONAL_TEST_LABEL: "${additionalTestLabels}",
@@ -167,6 +182,8 @@ class Builder implements Serializable {
             DOCKER_IMAGE: dockerImage,
             DOCKER_FILE: dockerFile,
             DOCKER_NODE: dockerNode,
+            DOCKER_REGISTRY: dockerRegistry,
+            DOCKER_CREDENTIAL: dockerCredential,
             PLATFORM_CONFIG_LOCATION: platformSpecificConfigPath,
             CONFIGURE_ARGS: getConfigureArgs(platformConfig, additionalConfigureArgs, variant),
             OVERRIDE_FILE_NAME_VERSION: overrideFileNameVersion,
@@ -177,6 +194,7 @@ class Builder implements Serializable {
             PUBLISH_NAME: publishName,
             ADOPT_BUILD_NUMBER: adoptBuildNumber,
             ENABLE_TESTS: enableTests,
+            ENABLE_TESTDYNAMICPARALLEL: enableTestDynamicParallel,
             ENABLE_INSTALLERS: enableInstallers,
             ENABLE_SIGNER: enableSigner,
             CLEAN_WORKSPACE: cleanWorkspace,
@@ -216,27 +234,49 @@ class Builder implements Serializable {
     Get the list of tests to run from the build configurations.
     We run different test categories depending on if this build is a release or nightly. This function parses and applies this to the individual build config.
     */
-    List<String> getTestList(Map<String, ?> configuration) {
+    List<String> getTestList(Map<String, ?> configuration, String variant) {
+        final List<String> nightly = DEFAULTS_JSON["testDetails"]["nightlyDefault"]
+        final List<String> weekly = DEFAULTS_JSON["testDetails"]["weeklyDefault"]
         List<String> testList = []
         /*
         * No test key or key value is test: false  --- test disabled
         * Key value is test: 'default' --- nightly build trigger 'nightly' test set, weekly build trigger or release build trigger 'nightly' + 'weekly' test sets
         * Key value is test: [customized map] specified nightly and weekly test lists
+        * Key value is test: [customized map] specified for different variant
         */
         if (configuration.containsKey("test") && configuration.get("test")) {
             def testJobType = "nightly"
             if (releaseType.equals("Weekly") || releaseType.equals("Release")) {
                 testJobType = "weekly"
             }
-
             if (isMap(configuration.test)) {
-
-                if ( testJobType == "nightly" ) {
-                    testList = (configuration.test as Map).get("nightly") as List<String>
+                if (configuration.test.containsKey(variant)) {
+                    //Test is enable for the variant
+                    if (configuration.test.get(variant)) {
+                        def testObj = configuration.test.get(variant)
+                        if (isMap(testObj)) {
+                            if ( testJobType == "nightly" ) {
+                                testList = (configuration.test.get(variant) as Map).get("nightly") as List<String>
+                            } else {
+                                testList = ((configuration.test.get(variant) as Map).get("nightly") as List<String>) + ((configuration.test as Map).get("weekly") as List<String>)
+                            }
+                        } else if (testObj instanceof List) {
+                            testList = (configuration.test as Map).get(variant) as List<String>
+                        } else {
+                            if ( testJobType == "nightly" ) {
+                                testList = nightly
+                            } else {
+                                testList = nightly + weekly
+                            }
+                        }
+                    }
                 } else {
-                    testList = ((configuration.test as Map).get("nightly") as List<String>) + ((configuration.test as Map).get("weekly") as List<String>)
+                    if ( testJobType == "nightly" ) {
+                        testList = (configuration.test as Map).get("nightly") as List<String>
+                    } else {
+                        testList = ((configuration.test as Map).get("nightly") as List<String>) + ((configuration.test as Map).get("weekly") as List<String>)
+                    }
                 }
-
             } else {
 
                 // Default to the test sets declared if one isn't set in the build configuration
@@ -250,9 +290,66 @@ class Builder implements Serializable {
         }
 
         testList.unique()
+
         return testList
     }
+    /*
+    Get the list of tests to dynamically run parallel builds from the build configurations.
+    This function parses and applies this to the individual build config.
+    */
+    Map<String, ?> getDynamicParams(Map<String, ?> configuration, String variant) {
+        List<String> testLists = []
+        List<String> numMachines = []
 
+        def testDynamicMap
+
+        if (configuration.containsKey("testDynamic")) {
+            // fetch from buildConfigurations for target
+
+            // testDynamic could be map, list or boolean
+            if (configuration.containsKey("testDynamic") && configuration.get("testDynamic")) {
+                // fetch variant options
+                testDynamicMap = configuration.get("testDynamic").get(variant)
+            } else {
+                // fetch generic options
+                testDynamicMap = configuration.get("testDynamic")
+            }
+        } else if (DEFAULTS_JSON["testDetails"]["defaultDynamicParas"]) {
+            // fetch default options
+            testDynamicMap = DEFAULTS_JSON["testDetails"]["defaultDynamicParas"]
+        }
+
+        if (testDynamicMap) {
+            if (testDynamicMap.containsKey("testLists")) {
+                testLists.addAll(testDynamicMap.get("testLists"))
+            }
+
+            if (testDynamicMap.containsKey("numMachines")) {
+                // populate the list of number of machines per tests
+                if (List.class.isInstance(testDynamicMap.get("numMachines"))) {
+                    // the size of the numMachines List should match the testLists size
+                    // otherwize throw an error
+                    // e.g. 
+                    // testLists    = ['extended.openjdk', 'extended.jck', 'special.jck']
+                    // numMachines  = ['3',                '2',            '5']
+
+                    numMachines.addAll(testDynamicMap.get("numMachines"))
+
+                    if (numMachines.size() < testLists.size()) {
+                        throw new Exception("Configuration error for dynamic testing: missmatch between dymanic parallel test targets testListing: ${testListing} and numMachines: ${numMachines}")
+                    }
+                } else {
+                    if (!testLists.isEmpty()) {
+                        // work-around for numMachines as a String
+                        // populate the List<String> number of machines with duplicates
+                        numMachines.addAll(Collections.nCopies(testLists.size(), "${testDynamicMap.get('numMachines')}"))
+                    }
+                }
+            }
+        }
+
+        return ["testLists": testLists, "numMachines": numMachines]
+    }
     /*
     Get the cleanWorkspaceAfterBuild override for this platform configuration
     */
@@ -279,10 +376,6 @@ class Builder implements Serializable {
         String stringOs = configuration.os as String
         String estimatedKey = stringArch + stringOs.capitalize()
 
-        if (configuration.containsKey("additionalFileNameTag")) {
-            estimatedKey = estimatedKey + "XL"
-        }
-
         if (dockerExcludes.containsKey(estimatedKey)) {
 
             if (dockerExcludes[estimatedKey].contains(variant)) {
@@ -295,13 +388,24 @@ class Builder implements Serializable {
     }
 
     def getArchLabel(Map<String, ?> configuration, String variant) {
-        def archLabelVal = ""
+        // Default to arch
+        def archLabelVal = configuration.arch
+
         // Workaround for cross compiled architectures
         if (configuration.containsKey("crossCompile")) {
-            archLabelVal = configuration.crossCompile
-        } else {
-            archLabelVal = configuration.arch
+            def configArchLabelVal
+
+            if (isMap(configuration.crossCompile)) {
+                configArchLabelVal = (configuration.crossCompile as Map<String, ?>).get(variant)
+            } else {
+                configArchLabelVal = configuration.crossCompile
+            }
+
+            if (configArchLabelVal != null) {
+                archLabelVal = configArchLabelVal
+            }
         }
+
         return archLabelVal
     }
 
@@ -361,18 +465,51 @@ class Builder implements Serializable {
     }
 
     /*
+    Retrieves the dockerRegistry attribute from the build configurations.
+    This is used to pull dockerImage from a custom registry.
+    If not specified, defaults to '' which will be DockerHub.
+    */
+    def getDockerRegistry(Map<String, ?> configuration, String variant) {
+        def dockerRegistryValue = ""
+        if (configuration.containsKey("dockerRegistry")) {
+            if (isMap(configuration.dockerRegistry)) {
+                dockerRegistryValue = (configuration.dockerRegistry as Map<String, ?>).get(variant)
+            } else {
+                dockerRegistryValue = configuration.dockerRegistry
+            }
+        }
+        return dockerRegistryValue
+    }
+
+    /*
+    Retrieves the dockerCredential attribute from the build configurations.
+    If used, this will wrap the docker pull with a docker login.
+    */
+    def getDockerCredential(Map<String, ?> configuration, String variant) {
+        def dockerCredentialValue = ""
+        if (configuration.containsKey("dockerCredential")) {
+            if (isMap(configuration.dockerCredential)) {
+                dockerCredentialValue = (configuration.dockerCredential as Map<String, ?>).get(variant)
+            } else {
+                dockerCredentialValue = configuration.dockerCredential
+            }
+        }
+        return dockerCredentialValue
+    }
+
+    /*
     Retrieves the platformSpecificConfigPath from the build configurations.
     This determines where the location of the operating system setup files are in comparison to the repository root. The param is formatted like this because we need to download and source the file from the bash scripts.
     */
     def getPlatformSpecificConfigPath(Map<String, ?> configuration) {
         def splitUserUrl = ((String)DEFAULTS_JSON['repository']['build_url']).minus(".git").split('/')
-        // e.g. https://github.com/AdoptOpenJDK/openjdk-build.git will produce AdoptOpenJDK/openjdk-build
+        // e.g. https://github.com/adoptium/temurin-build.git will produce adoptium/temurin-build
         String userOrgRepo = "${splitUserUrl[splitUserUrl.size() - 2]}/${splitUserUrl[splitUserUrl.size() - 1]}"
 
-        // e.g. AdoptOpenJDK/openjdk-build/master/build-farm/platform-specific-configurations
+        // e.g. adoptium/temurin-build/master/build-farm/platform-specific-configurations
         def platformSpecificConfigPath = "${userOrgRepo}/${DEFAULTS_JSON['repository']['build_branch']}/${DEFAULTS_JSON['configDirectories']['platform']}"
         if (configuration.containsKey("platformSpecificConfigPath")) {
-            // e.g. AdoptOpenJDK/openjdk-build/master/build-farm/platform-specific-configurations.linux.sh
+            // e.g. adoptium/temurin-build/master/build-farm/platform-specific-configurations.linux.sh
             platformSpecificConfigPath = "${userOrgRepo}/${DEFAULTS_JSON['repository']['build_branch']}/${configuration.platformSpecificConfigPath}"
         }
         return platformSpecificConfigPath
@@ -448,9 +585,11 @@ class Builder implements Serializable {
                 configureArgs += configConfigureArgs
             }
         }
-
         if (additionalConfigureArgs) {
-            configureArgs += " " + additionalConfigureArgs
+            if (configureArgs) {
+                configureArgs += " "
+            }
+            configureArgs += additionalConfigureArgs
         }
 
         return configureArgs
@@ -634,6 +773,8 @@ class Builder implements Serializable {
             context.echo "Publish: ${publish}"
             context.echo "Release: ${release}"
             context.echo "Tag/Branch name: ${scmReference}"
+            context.echo "AQA tests Release/Branch name: ${aqaReference}"
+            context.echo "Force auto generate AQA test jobs: ${aqaAutoGen}"
             context.echo "Keep test reportdir: ${keepTestReportDir}"
             context.echo "Keep release logs: ${keepReleaseLogs}"
 
@@ -652,21 +793,19 @@ class Builder implements Serializable {
                     context.catchError {
                         // Execute build job for configuration i.e jdk11u/job/jdk11u-linux-x64-hotspot
                         context.stage(configuration.key) {
-                            context.echo "Created job " + downstreamJobName
-
-                            // execute build
+                            // Triggering downstream job ${downstreamJobName}
                             def downstreamJob = context.build job: downstreamJobName, propagate: false, parameters: config.toBuildParams()
 
                             if (downstreamJob.getResult() == 'SUCCESS') {
                                 // copy artifacts from build
-                                context.println "[NODE SHIFT] MOVING INTO MASTER NODE..."
-                                context.node("master") {
+                                context.println "[NODE SHIFT] MOVING INTO CONTROLLER NODE..."
+                                context.node("built-in || master") {
                                     context.catchError {
 
                                         //Remove the previous artifacts
                                         try {
                                             context.timeout(time: pipelineTimeouts.REMOVE_ARTIFACTS_TIMEOUT, unit: "HOURS") {
-                                                context.sh "rm target/${config.TARGET_OS}/${config.ARCHITECTURE}/${config.VARIANT}/* || true"
+                                                context.sh "rm -rf target/${config.TARGET_OS}/${config.ARCHITECTURE}/${config.VARIANT}/"
                                             }
                                         } catch (FlowInterruptedException e) {
                                             throw new Exception("[ERROR] Previous artifact removal timeout (${pipelineTimeouts.REMOVE_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName} has been reached. Exiting...")
@@ -682,6 +821,14 @@ class Builder implements Serializable {
                                                         target: "target/${config.TARGET_OS}/${config.ARCHITECTURE}/${config.VARIANT}/",
                                                         flatten: true
                                                 )
+                                                context.copyArtifacts(
+                                                        projectName: downstreamJobName,
+                                                        selector: context.specific("${downstreamJob.getNumber()}"),
+                                                        filter: 'workspace/target/AQATestTaps/*.tap',
+                                                        fingerprintArtifacts: true,
+                                                        target: "target/${config.TARGET_OS}/${config.ARCHITECTURE}/${config.VARIANT}/AQATestTaps/",
+                                                        flatten: true
+                                                )
                                             }
                                         } catch (FlowInterruptedException e) {
                                             throw new Exception("[ERROR] Copy artifact timeout (${pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName} has been reached. Exiting...")
@@ -693,7 +840,7 @@ class Builder implements Serializable {
                                         // Archive in Jenkins
                                         try {
                                             context.timeout(time: pipelineTimeouts.ARCHIVE_ARTIFACTS_TIMEOUT, unit: "HOURS") {
-                                                context.archiveArtifacts artifacts: "target/${config.TARGET_OS}/${config.ARCHITECTURE}/${config.VARIANT}/*"
+                                                context.archiveArtifacts artifacts: "target/${config.TARGET_OS}/${config.ARCHITECTURE}/${config.VARIANT}/**/*"
                                             }
                                         } catch (FlowInterruptedException e) {
                                             throw new Exception("[ERROR] Archive artifact timeout (${pipelineTimeouts.ARCHIVE_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName}has been reached. Exiting...")
@@ -701,7 +848,7 @@ class Builder implements Serializable {
 
                                     }
                                 }
-                                context.println "[NODE SHIFT] OUT OF MASTER NODE!"
+                                context.println "[NODE SHIFT] OUT OF CONTROLLER NODE!"
                             } else if (propagateFailures) {
                                 context.error("Build failed due to downstream failure of ${downstreamJobName}")
                                 currentBuild.result = "FAILURE"
@@ -739,10 +886,13 @@ return {
     String activeNodeTimeout,
     String dockerExcludes,
     String enableTests,
+    String enableTestDynamicParallel,
     String enableInstallers,
     String enableSigner,
     String releaseType,
     String scmReference,
+    String aqaReference,
+    String aqaAutoGen,
     String overridePublishName,
     String useAdoptShellScripts,
     String additionalConfigureArgs,
@@ -793,12 +943,15 @@ return {
             activeNodeTimeout: activeNodeTimeout,
             dockerExcludes: buildsExcludeDocker,
             enableTests: Boolean.parseBoolean(enableTests),
+            enableTestDynamicParallel: Boolean.parseBoolean(enableTestDynamicParallel),
             enableInstallers: Boolean.parseBoolean(enableInstallers),
             enableSigner: Boolean.parseBoolean(enableSigner),
             publish: publish,
             release: release,
             releaseType: releaseType,
             scmReference: scmReference,
+            aqaReference: aqaReference,
+            aqaAutoGen: Boolean.parseBoolean(aqaAutoGen),
             publishName: publishName,
             additionalConfigureArgs: additionalConfigureArgs,
             scmVars: scmVars,

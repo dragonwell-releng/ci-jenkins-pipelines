@@ -1,3 +1,4 @@
+<!-- textlint-disable terminology -->
 # Job Regenerator
 
 To enable concurrent pipeline builds (i.e. submitting two pipelines in parallel), we have implemented a "job regeneration" system for each JDK version.
@@ -16,24 +17,24 @@ The pipelines can use these job dsl's to create their downstream jobs since they
 ## Where they are
 
 They are stored in the [utils](https://ci.adoptopenjdk.net/job/build-scripts/job/utils/) folder of our jenkins server. The jobs themselves are called `pipeline_jobs_generator_jdk11u`, `pipeline_jobs_generator_jdk8u`, etc.
-NOTE: When the JDK HEAD updates, these jobs will need to be updated too (see [RELEASING.md](https://github.com/AdoptOpenJDK/openjdk-build/blob/master/RELEASING.md#steps-for-every-version)) for how to do so.
+NOTE: When the JDK HEAD updates, these jobs will need to be updated too (see [RELEASING.md](https://github.com/adoptium/temurin-build/blob/master/RELEASING.md#steps-for-every-version)) for how to do so.
 
 ## How they work
 
 There are three stages for each job regenerator.
 
 - Execute the top level job:
-  - The jobs themselves are executed by Github Push on this repository. Each time there is a commit, all the pipeline regenerators are kicked off. This is so any potential changes to the [buildConfigurations](pipelines/jobs/configurations) and [targetConfigurations](pipelines/jobs/configurations) are taken into account when creating a job dsl for each downstream job.
+  - The jobs themselves are executed by GitHub Push on this repository. Each time there is a commit, all the pipeline regenerators are kicked off. This is so any potential changes to the [buildConfigurations](pipelines/jobs/configurations/jdk8u_pipeline_config.groovy) and [targetConfigurations](pipelines/jobs/configurations/jdk8u.groovy) are taken into account when creating a job dsl for each downstream job.
   - Each of the jobs executes it's corresponding [regeneration](pipelines/build/regeneration) file, passing down it's version, targeted OS/ARCH/VARIANT and specific build configurations to the main [config_regeneration](pipelines/build/common/config_regeneration.groovy) file.
 - Check if the corresponding pipeline is in progress:
-  - Since we want to potentially avoid overwriting the job dsl's of any pipelines in progress, we use the [jenkins api](https://ci.adoptopenjdk.net/api/) to verify that there are no pipelines of that version queued or running. If there are, the job regenerator sleeps for 15mins and checks again afterwards. If not, it moves onto the next step.
+  - Since we want to potentially avoid overwriting the job dsl's of any pipelines in progress, we use the [jenkins API](https://ci.adoptopenjdk.net/api/) to verify that there are no pipelines of that version queued or running. If there are, the job regenerator sleeps for 15mins and checks again afterwards. If not, it moves onto the next step.
 - Regenerate the downstream jobs, one at a time:
   - The regenerator then iterates through the keys in the `targetConfigurations` (e.g. [jdk11u.groovy](pipelines/jobs/configurations/jdk11u.groovy)), which are the same keys used in the `buildConfiguration` file.
   After parsing each variant in them and going through various error handling stages, the job name and folder path is constructed which is the bare minimum that the job dsl needs to be created. We only need the bare minimum as the pipelines will overwrite most the configs when they run.
   - The job dsl for that downstream job is constructed and that job is then, successfully regenerated. The result is somewhat similar to this:
 
 ```bash
-[INFO] Querying adopt api to get the JDK-Head number
+[INFO] Querying Adoptium API to get the JDK-Head number
 [Pipeline] library
 Loading library openjdk-jenkins-helper@master
 Examining AdoptOpenJDK/openjdk-jenkins-helper
@@ -42,12 +43,12 @@ Resolved master as branch master at revision 3e6da943be88a2bcdff335cdb93d4baf1a7
 using credential 8dfb669c-96d7-4960-aa2d-6059651eea96
  > git rev-parse --is-inside-work-tree # timeout=10
 Fetching changes from the remote Git repository
- > git config remote.origin.url https://github.com/AdoptOpenJDK/openjdk-jenkins-helper.git # timeout=10
+ > git config remote.origin.url https://github.com/adoptium/jenkins-helper.git # timeout=10
 Fetching without tags
-Fetching upstream changes from https://github.com/AdoptOpenJDK/openjdk-jenkins-helper.git
+Fetching upstream changes from https://github.com/adoptium/jenkins-helper.git
  > git --version # timeout=10
-using GIT_ASKPASS to set credentials Github BOT PWD
- > git fetch --no-tags --force --progress -- https://github.com/AdoptOpenJDK/openjdk-jenkins-helper.git +refs/heads/master:refs/remotes/origin/master # timeout=10
+using GIT_ASKPASS to set credentials GitHub BOT PWD
+ > git fetch --no-tags --force --progress -- https://github.com/adoptium/jenkins-helper.git +refs/heads/master:refs/remotes/origin/master # timeout=10
 Checking out Revision 3e6da943be88a2bcdff335cdb93d4baf1a7555a7 (master)
  > git config core.sparsecheckout # timeout=10
  > git checkout -f 3e6da943be88a2bcdff335cdb93d4baf1a7555a7 # timeout=10
@@ -93,5 +94,6 @@ It then calls [pipeline_job_template.groovy](pipelines/jobs/pipeline_job_templat
 
 ## Downstream Test Jobs
 
-The [downstream test jobs](https://ci.adoptopenjdk.net/view/Test_openjdk/) are generated separately from the build ones, via the [Test_Job_Auto_Gen](https://ci.adoptopenjdk.net/view/Test_grinder/job/Test_Job_Auto_Gen/),
-[testJobTemplate](https://github.com/AdoptOpenJDK/openjdk-tests/blob/master/buildenv/jenkins/testJobTemplate) and [testPipeline](https://github.com/AdoptOpenJDK/openjdk-tests/blob/master/buildenv/jenkins/wip/testpipeline.groovy) resources in the openjdk-tests repository.
+Existing [downstream test jobs](https://ci.adoptopenjdk.net/view/Test_openjdk/) are generated separately from the build ones, via the [Test_Job_Auto_Gen](https://ci.adoptopenjdk.net/view/Test_grinder/job/Test_Job_Auto_Gen/),
+[testJobTemplate](https://github.com/adoptium/aqa-tests/blob/master/buildenv/jenkins/testJobTemplate) resources in the aqa-tests repository.
+If a new JDK version | JVM vendor | Platform is beginning to be built | supported, a bunch of new test jobs get created on that first attempt to run testing dynamically by using same [testJobTemplate](https://github.com/adoptium/aqa-tests/blob/master/buildenv/jenkins/testJobTemplate).

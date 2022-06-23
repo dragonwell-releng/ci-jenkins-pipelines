@@ -18,10 +18,10 @@ limitations under the License.
 */
 
 String javaVersion = params.JAVA_VERSION
-String ADOPT_DEFAULTS_FILE_URL = "https://raw.githubusercontent.com/AdoptOpenJDK/ci-jenkins-pipelines/master/pipelines/defaults.json"
+String ADOPT_DEFAULTS_FILE_URL = "https://raw.githubusercontent.com/adoptium/ci-jenkins-pipelines/master/pipelines/defaults.json"
 String DEFAULTS_FILE_URL = (params.DEFAULTS_URL) ?: ADOPT_DEFAULTS_FILE_URL
 
-node ("master") {
+node ("built-in || master") {
   // Retrieve Adopt Defaults
   def getAdopt = new URL(ADOPT_DEFAULTS_FILE_URL).openConnection()
   Map<String, ?> ADOPT_DEFAULTS_JSON = new JsonSlurper().parseText(getAdopt.getInputStream().getText()) as Map
@@ -75,7 +75,7 @@ node ("master") {
 
     checkoutUserPipelines()
 
-    // Import adopt class library. This contains groovy classes, used for carrying across metadata between jobs.
+    // Import class library. This contains groovy classes, used for carrying across metadata between jobs.
     def libraryPath = (params.LIBRARY_PATH) ?: DEFAULTS_JSON['importLibraryScript']
     try {
       load "${WORKSPACE}/${libraryPath}"
@@ -166,7 +166,10 @@ node ("master") {
 
     def excludes = (params.EXCLUDES_LIST) ?: ""
     def jenkinsCreds = (params.JENKINS_AUTH) ?: ""
-    Integer sleepTime = (params.SLEEP_TIME) != "" ? Integer.parseInteger(SLEEP_TIME) : 900
+    Integer sleepTime = 900
+    if (params.SLEEP_TIME) {
+      sleepTime = SLEEP_TIME as Integer
+    }
 
     println "[INFO] Running regeneration script with the following configuration:"
     println "VERSION: $javaVersion"
@@ -221,7 +224,8 @@ node ("master") {
           scriptPath,
           jenkinsBuildRoot,
           jenkinsCredentials,
-          checkoutCreds
+          checkoutCreds,
+          false
         ).regenerate()
       }
     } else {
@@ -243,7 +247,8 @@ node ("master") {
         scriptPath,
         jenkinsBuildRoot,
         jenkinsCreds,
-        checkoutCreds
+        checkoutCreds,
+        false
       ).regenerate()
     }
 

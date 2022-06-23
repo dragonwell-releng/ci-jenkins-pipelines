@@ -1,0 +1,34 @@
+# Config file used by .github/workflows/labeler.yml
+
+# This file matches file/folder changes to labels. See https://github.com/actions/labeler for more information.
+
+# e.g to add the test label to any changes in the /tests directory:
+
+# test:
+#   - tests/*
+
+ghActions:
+    - .github/workflows/**/*
+documentation:
+    - docs/**/*
+    - docs/*
+    - '**/*.md'
+jenkins-pipeline:
+    - pipelines/**/*
+    - pipelines/*
+generation:
+    - pipelines/build/regeneration/*
+    - pipelines/build/common/config_regeneration.groovy
+docker:
+    - pipelines/build/dockerFiles/*
+testing:
+    - pipelines/build/prTester/*
+    - pipelines/src/test/*
+code-tools:
+    - tools/*
+gradle:
+    - pipelines/gradle/*
+    - pipelines/build.gradle
+    - pipelines/gradlew
+cross-compile:
+    - pipelines/build/common/cross_compiled_version_out.groovy

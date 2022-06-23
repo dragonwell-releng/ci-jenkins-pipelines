@@ -13,7 +13,11 @@ class IndividualBuildConfigTest {
                 VARIANT                    : "c",
                 JAVA_TO_BUILD              : "d",
                 TEST_LIST                  : "e",
+                DYNAMIC_LIST               : "e",
+                NUM_MACHINES               : "e",
                 SCM_REF                    : "f",
+                AQA_REF                    : "s",
+                AQA_AUTO_GEN               : false,
                 BUILD_ARGS                 : "g",
                 NODE_LABEL                 : "h",
                 ADDITIONAL_TEST_LABEL      : "t",
@@ -23,6 +27,8 @@ class IndividualBuildConfigTest {
                 DOCKER_IMAGE               : "o",
                 DOCKER_FILE                : "p",
                 DOCKER_NODE                : "q",
+                DOCKER_REGISTRY            : "u",
+                DOCKER_CREDENTIAL          : "v",
                 PLATFORM_CONFIG_LOCATION   : "r",
                 CONFIGURE_ARGS             : "i",
                 OVERRIDE_FILE_NAME_VERSION : "j",
@@ -49,6 +55,24 @@ class IndividualBuildConfigTest {
         }
 
         Assertions.assertEquals(JsonOutput.toJson(config), JsonOutput.toJson(parsedConfig))
+    }
+
+    @Test
+    void serializationTransfersTrimmedDataCorrectly() {
+        Map config = [
+                ARCHITECTURE               : "   a",
+                TARGET_OS                  : "b     ",
+                BUILD_ARGS                 : " g ",
+                PUBLISH_NAME               : "",
+                CONFIGURE_ARGS             : null
+
+        ]
+        def trimmedConfig = new IndividualBuildConfig(config)
+        Assertions.assertEquals("a", trimmedConfig.ARCHITECTURE)
+        Assertions.assertEquals("b", trimmedConfig.TARGET_OS)
+        Assertions.assertEquals("g", trimmedConfig.BUILD_ARGS)
+        Assertions.assertEquals("", trimmedConfig.PUBLISH_NAME)
+        Assertions.assertNull(trimmedConfig.CONFIGURE_ARGS)
     }
 
 }

@@ -1,8 +1,9 @@
 {
     "repository"             : {
-        "build_url"          : "https://github.com/AdoptOpenJDK/openjdk-build.git",
+        "build_url"          : "https://github.com/adoptium/temurin-build.git",
         "build_branch"       : "master",
-        "pipeline_url"       : "https://github.com/AdoptOpenJDK/ci-jenkins-pipelines.git",
+        "test_dirs"          : "/test/functional",
+        "pipeline_url"       : "https://github.com/adoptium/ci-jenkins-pipelines.git",
         "pipeline_branch"    : "master"
     },
     "jenkinsDetails"         : {
@@ -31,6 +32,27 @@
         "upstream"           : "pipelines/build/common/build_base_file.groovy",
         "downstream"         : "pipelines/build/common/openjdk_build_pipeline.groovy"
     },
+    "testDetails"            : {
+        "enableTests"        : true,
+        "nightlyDefault"     : [
+            "sanity.openjdk",
+            "sanity.system",
+            "extended.system",
+            "sanity.perf",
+            "sanity.functional",
+            "extended.functional"
+        ],
+        "weeklyDefault"     : [
+            "extended.openjdk",
+            "extended.perf",
+            "special.functional"
+        ],
+        "enableTestDynamicParallel"      : true,
+        "defaultDynamicParas": {
+            "testLists"      : ["extended.openjdk"],
+            "numMachines"    : ["3"]
+        }
+    },
     "importLibraryScript"    : "pipelines/build/common/import_lib.groovy",
-    "defaultsUrl"            : "https://raw.githubusercontent.com/AdoptOpenJDK/ci-jenkins-pipelines/master/pipelines/defaults.json"
+    "defaultsUrl"            : "https://raw.githubusercontent.com/adoptium/ci-jenkins-pipelines/master/pipelines/defaults.json"
 }

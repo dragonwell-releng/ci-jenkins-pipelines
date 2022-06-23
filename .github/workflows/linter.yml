@@ -11,13 +11,10 @@ name: Linter
 # https://help.github.com/en/articles/workflow-syntax-for-github-actions
 #
 
-#############################
-# Start the job on all push #
-#############################
+####################################################################
+# Start the job on all pull requests that target the master branch #
+####################################################################
 on:
-  push:
-    branches-ignore: [master]
-    # Remove the line above to run when pushing to master
   pull_request:
     branches: [master]
 
@@ -48,12 +45,12 @@ jobs:
       # Run Linter against code base #
       ################################
       - name: Lint Code Base
-        uses: github/super-linter@v3
+        uses: github/super-linter@v4
         env:
           VALIDATE_ALL_CODEBASE: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Markdown lint complains about the issue templates
-          FILTER_REGEX_EXCLUDE: .github/workflows/ISSUE_TEMPLATE/*
+          FILTER_REGEX_EXCLUDE: .github/ISSUE_TEMPLATE/*
           # Lots of shellcheck errors - need fixing
           VALIDATE_BASH: false
           # Someone should investigate adding these at some point
