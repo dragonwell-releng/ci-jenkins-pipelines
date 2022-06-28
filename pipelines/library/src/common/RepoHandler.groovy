@@ -8,7 +8,7 @@ class RepoHandler {
     private final Map ADOPT_DEFAULTS_JSON
     private Map USER_DEFAULTS_JSON
 
-    private final String ADOPT_JENKINS_DEFAULTS_URL = "http://ci.dragonwell-jdk.io/userContent/config/defaults.json"
+    private final String ADOPT_JENKINS_DEFAULTS_URL = "https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines/master/defaults.json"
 
     /*
     Constructor
