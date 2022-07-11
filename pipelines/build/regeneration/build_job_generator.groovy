@@ -184,6 +184,7 @@ node ("built-in || master") {
     println "BASE FILE PATH: $baseFilePath"
     println "LIBRARY PATH: $libraryPath"
     println "EXCLUDES LIST: $excludes"
+    println "JENKINS AUTH: $params.JENKINS_AUTH"
     println "SLEEP_TIME: $sleepTime"
     if (jenkinsCreds == "") { println "[WARNING] No Jenkins API Credentials have been provided! If your server does not have anonymous read enabled, you may encounter 403 api request error codes." }
 
