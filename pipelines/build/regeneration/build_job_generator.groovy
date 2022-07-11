@@ -201,7 +201,7 @@ node ("built-in || master") {
 
     if (jenkinsCreds != "") {
       withCredentials([usernamePassword(
-          credentialsId: '${JENKINS_AUTH}',
+          credentialsId: params.JENKINS_AUTH,
           usernameVariable: 'jenkinsUsername',
           passwordVariable: 'jenkinsToken'
       )]) {
