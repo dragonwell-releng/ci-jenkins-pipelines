@@ -62,12 +62,13 @@ class Config17 {
                 dockerFile : [
                         dragonwell: 'pipelines/build/dockerFiles/alpine_dragonwell17.dockerfile'
                 ],
-                test                : [
+                test                : 'default'
+                //test                : [
                         // TODO: enable tests
-                        nightly: [],
-                        // release: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external', 'special.functional']
-                        release: []
-                ]
+                //        nightly: [],
+                //        release: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external', 'special.functional']
+                        //release: []
+                //]
         ],
 
         x64Windows: [

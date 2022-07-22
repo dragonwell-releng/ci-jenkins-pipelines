@@ -601,16 +601,9 @@ class Builder implements Serializable {
     */
     Map<String, IndividualBuildConfig> getJobConfigurations() {
         Map<String, IndividualBuildConfig> jobConfigurations = [:]
-        context.println "????"
-        context.println targetConfigurations
         //Parse nightly config passed to jenkins job
         targetConfigurations
                 .each { target ->
-                     context.println "!!!????"
-                     context.println target
-                     context.println "????!!!"
-                     context.println buildConfigurations
-                     context.println "<<>>"
                     //For each requested build type, generate a configuration
                     if (buildConfigurations.containsKey(target.key)) {
                         def platformConfig = buildConfigurations.get(target.key) as Map<String, ?>
