@@ -134,8 +134,8 @@ class Config11 {
                 dockerImage         : 'adoptopenjdk/centos7_build_image',
                 test                 : [
                         // TODO: enable tests
-                        nightly: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external', 'special.openjdk'],
-                        release: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external', 'special.openjdk']
+                        nightly: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external'],
+                        release: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external']
                 ],
                 additionalNodeLabels: [
                         dragonwell: 'armv8.2'
