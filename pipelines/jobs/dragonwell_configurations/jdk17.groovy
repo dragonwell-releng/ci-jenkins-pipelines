@@ -7,11 +7,11 @@ targetConfigurations = [
         ],
         "aarch64Linux": [
                 "dragonwell"
-        ]
-/*       "x64AlpineLinux": [
+        ],
+       "x64AlpineLinux": [
                 "dragonwell",
                 "hotspot"
-        ]*/
+        ]
 ]
 
 // 03:30 Wed, Fri

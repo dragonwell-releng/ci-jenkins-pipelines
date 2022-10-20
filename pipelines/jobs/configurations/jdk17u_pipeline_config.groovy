@@ -36,12 +36,12 @@ class Config17 {
                         "temurin"   : '--create-source-archive --create-jre-image'
                 ]
         ],
-/*
+
         x64AlpineLinux  : [
                 os                  : 'alpine-linux',
                 arch                : 'x64',
                 dockerImage         : 'adoptopenjdk/alpine3_build_image',
-                test                : 'default',
+                test                : '',
                 configureArgs       : '--enable-headless-only=yes',
                 buildArgs           : [
                         "temurin"   : '--create-jre-image'
@@ -52,13 +52,13 @@ class Config17 {
                 os                  : 'alpine-linux',
                 arch                : 'aarch64',
                 dockerImage         : 'adoptopenjdk/alpine3_build_image',
-                test                : 'default',
+                test                : '',
                 configureArgs       : '--enable-headless-only=yes',
                 buildArgs           : [
                         "temurin"   : '--create-jre-image'
                 ]
         ],
-*/
+
         x64Windows: [
                 os                  : 'windows',
                 arch                : 'x64',

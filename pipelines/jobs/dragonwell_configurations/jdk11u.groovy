@@ -11,10 +11,10 @@ targetConfigurations = [
         ],
         "riscv64Linux": [
                 "dragonwell"
-        ]
-/*        "x64AlpineLinux": [
+        ],
+        "x64AlpineLinux": [
                 "dragonwell"
-        ]*/
+        ]
 ]
 
 // 18:05 Tue, Thur

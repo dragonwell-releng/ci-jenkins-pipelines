@@ -52,7 +52,7 @@ class Config17 {
                 additionalFileNameTag: "linuxXL",
                 configureArgs        : '--with-noncompressedrefs --enable-dtrace --enable-jitserver'
         ],
-/*
+
         x64AlpineLinux  : [
                 os                  : 'alpine-linux',
                 arch                : 'x64',
@@ -61,8 +61,8 @@ class Config17 {
                 configureArgs: '--enable-headless-only=yes',
                 dockerFile : [
                         dragonwell: 'pipelines/build/dockerFiles/alpine_dragonwell17.dockerfile'
-                ],*/
-                test                : 'default'
+                ],
+                test                : ''
                 //test                : [
                         // TODO: enable tests
                 //        nightly: [],
