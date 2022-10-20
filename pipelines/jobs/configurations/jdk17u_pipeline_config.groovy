@@ -36,7 +36,7 @@ class Config17 {
                         "temurin"   : '--create-source-archive --create-jre-image'
                 ]
         ],
-
+/*
         x64AlpineLinux  : [
                 os                  : 'alpine-linux',
                 arch                : 'x64',
@@ -58,7 +58,7 @@ class Config17 {
                         "temurin"   : '--create-jre-image'
                 ]
         ],
-
+*/
         x64Windows: [
                 os                  : 'windows',
                 arch                : 'x64',

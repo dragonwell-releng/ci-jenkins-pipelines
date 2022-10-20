@@ -35,7 +35,7 @@ class Config11 {
                         "temurin"     : '--create-source-archive'
                 ]
         ],
-
+/*
         x64AlpineLinux  : [
                 os                  : 'alpine-linux',
                 arch                : 'x64',
@@ -51,7 +51,7 @@ class Config11 {
                 test                : 'default',
                 configureArgs       : '--enable-headless-only=yes'
         ],
-
+*/
         x64Windows: [
                 os                  : 'windows',
                 arch                : 'x64',

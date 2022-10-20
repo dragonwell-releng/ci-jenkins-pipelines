@@ -8,9 +8,9 @@ targetConfigurations = [
                 "openj9",
                 "bisheng"
         ],
-        "x64AlpineLinux" : [
+/*        "x64AlpineLinux" : [
                 "temurin"
-        ],
+        ],*/
         "x64Windows"  : [
                 "temurin",
                 "openj9"
@@ -35,9 +35,9 @@ targetConfigurations = [
                 "openj9",
                 "bisheng"
         ],
-        "aarch64AlpineLinux" : [
+/*        "aarch64AlpineLinux" : [
                 "temurin"
-        ],
+        ],*/
         "aarch64Mac": [
                 "temurin"
         ],

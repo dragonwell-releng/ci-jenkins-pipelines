@@ -187,13 +187,13 @@ class Config11 {
                     buildArgs    : '--cross-compile',
                     configureArgs: '--disable-ddr --openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root'
             ],
-            x64AlpineLinux: [
+/*            x64AlpineLinux: [
                     os         : 'alpine-linux',
                     arch       : 'x64',
                     dockerImage: 'adoptopenjdk/alpine3_build_image',
                     dockerFile : [
                             dragonwell: 'pipelines/build/dockerFiles/alpine_dragonwell.dockerfile'
-                    ],
+                    ],*/
                     test       : [
                             // TODO: enable tests
                             nightly: [],
