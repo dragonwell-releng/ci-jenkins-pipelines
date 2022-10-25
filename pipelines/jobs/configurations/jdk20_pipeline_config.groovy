@@ -1,4 +1,4 @@
-class Config18 {
+class Config20 {
 
     final Map<String, Map<String, ?>> buildConfigurations = [
         x64Mac    : [
@@ -84,10 +84,13 @@ class Config18 {
                 os                  : 'aix',
                 arch                : 'ppc64',
                 additionalNodeLabels: [
-                        temurin: 'xlc16&&aix710',
+                        temurin: 'xlc16&&aix720',
                         openj9:  'xlc16&&aix715'
                 ],
                 test                : 'default',
+                additionalTestLabels: [
+                        temurin      : 'aix720'
+                ],
                 cleanWorkspaceAfterBuild: true,
                 buildArgs           : [
                         'temurin'   : '--create-jre-image --create-sbom'
@@ -151,10 +154,24 @@ class Config18 {
                 buildArgs           : [
                         'temurin'   : '--create-jre-image --create-sbom'
                 ]
+        ],
+
+        riscv64Linux      :  [
+                os                   : 'linux',
+                arch                 : 'riscv64',
+                configureArgs        : '--enable-dtrace',
+                buildArgs           : [
+                        'temurin'   : '--create-jre-image --create-sbom'
+                ],
+                test                : [
+                        nightly: ['sanity.openjdk'],
+                        weekly : ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf']
+                ]
         ]
+
   ]
 
 }
 
-Config18 config = new Config18()
+Config20 config = new Config20()
 return config.buildConfigurations

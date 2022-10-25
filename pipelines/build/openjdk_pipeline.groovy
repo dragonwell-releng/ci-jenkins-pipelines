@@ -21,17 +21,22 @@ Closure configureBuild = null
 def buildConfigurations = null
 Map<String, ?> DEFAULTS_JSON = null
 
-node ("built-in || master") {
+node('worker') {
+    // Ensure workspace is clean so we don't archive any old failed pipeline artifacts
+    println '[INFO] Cleaning up controller worker workspace prior to running pipelines..'
+    // Fail if unable to clean..
+    cleanWs notFailBuild: false
+
     // Load defaultsJson. These are passed down from the build_pipeline_generator and is a JSON object containing user's default constants.
-    if (!params.defaultsJson || defaultsJson == "") {
-        throw new Exception("[ERROR] No User Defaults JSON found! Please ensure the defaultsJson parameter is populated and not altered during parameter declaration.")
+    if (!params.defaultsJson || defaultsJson == '') {
+        throw new Exception('[ERROR] No User Defaults JSON found! Please ensure the defaultsJson parameter is populated and not altered during parameter declaration.')
     } else {
         DEFAULTS_JSON = new JsonSlurper().parseText(defaultsJson) as Map
     }
 
     // Load adoptDefaultsJson. These are passed down from the build_pipeline_generator and is a JSON object containing adopt's default constants.
-    if (!params.adoptDefaultsJson || adoptDefaultsJson == "") {
-        throw new Exception("[ERROR] No Adopt Defaults JSON found! Please ensure the adoptDefaultsJson parameter is populated and not altered during parameter declaration.")
+    if (!params.adoptDefaultsJson || adoptDefaultsJson == '') {
+        throw new Exception('[ERROR] No Adopt Defaults JSON found! Please ensure the adoptDefaultsJson parameter is populated and not altered during parameter declaration.')
     } else {
         ADOPT_DEFAULTS_JSON = new JsonSlurper().parseText(adoptDefaultsJson) as Map
     }
@@ -40,25 +45,15 @@ node ("built-in || master") {
     Changes dir to Adopt's pipeline repo. Use closures as functions aren't accepted inside node blocks
     */
     def checkoutAdoptPipelines = { ->
-      checkout([$class: 'GitSCM',
-        branches: [ [ name: ADOPT_DEFAULTS_JSON["repository"]["pipeline_branch"] ] ],
-        userRemoteConfigs: [ [ url: ADOPT_DEFAULTS_JSON["repository"]["pipeline_url"] ] ]
+        checkout([$class: 'GitSCM',
+        branches: [ [ name: ADOPT_DEFAULTS_JSON['repository']['pipeline_branch'] ] ],
+        userRemoteConfigs: [ [ url: ADOPT_DEFAULTS_JSON['repository']['pipeline_url'] ] ]
       ])
     }
 
     scmVars = checkout scm
 
-    // Load the class library so we can use their classes here. If we don't find an import library script in the user's repo, we checkout to temurin-build and use the one that's present there. Finally, we check back out to the user repo.
-    def libraryPath = (params.baseFilePath) ?: DEFAULTS_JSON['importLibraryScript']
-    try {
-        load "${WORKSPACE}/${libraryPath}"
-    } catch (Exception e) {
-        println "[WARNING] ${libraryPath} could not be loaded, likely because it does not exist in your repository. Error:\n${e}\nAttempting to pull Adopt's library script instead..."
-
-        checkoutAdoptPipelines()
-        load "${WORKSPACE}/${ADOPT_DEFAULTS_JSON['importLibraryScript']}"
-        checkout scm
-    }
+    library(identifier: 'openjdk-jenkins-helper@master')
 
     // Load baseFilePath. This is where build_base_file.groovy is located. It runs the downstream job setup and configuration retrieval services.
     def baseFilePath = (params.baseFilePath) ?: DEFAULTS_JSON['baseFileDirectories']['upstream']
@@ -76,8 +71,8 @@ node ("built-in || master") {
     def buildConfigFilePath = (params.buildConfigFilePath) ?: "${DEFAULTS_JSON['configDirectories']['build']}/${javaToBuild}_pipeline_config.groovy"
 
     // Check if pipeline is jdk11 or jdk11u
-    def configPath =  new File("${WORKSPACE}/${buildConfigFilePath}")
-    if (configPath.exists()) {
+    def configPath =  "${WORKSPACE}/${buildConfigFilePath}"
+    if (fileExists(configPath)) {
         println "Found ${buildConfigFilePath}"
     } else {
         javaToBuild = "${javaToBuild}u"
@@ -92,11 +87,11 @@ node ("built-in || master") {
         checkoutAdoptPipelines()
 
         // Reset javaToBuild to original value before trying again. Converts 11u to 11
-        javaToBuild = javaToBuild.replaceAll("u", "")
+        javaToBuild = javaToBuild.replaceAll('u', '')
 
         // Check if pipeline is jdk11 or jdk11u
-        configPath =  new File("${WORKSPACE}/${ADOPT_DEFAULTS_JSON['configDirectories']['build']}/${javaToBuild}_pipeline_config.groovy")
-        if (configPath.exists()) {
+        configPath =  "${WORKSPACE}/${ADOPT_DEFAULTS_JSON['configDirectories']['build']}/${javaToBuild}_pipeline_config.groovy"
+        if (fileExists(configPath)) {
             buildConfigurations = load "${WORKSPACE}/${ADOPT_DEFAULTS_JSON['configDirectories']['build']}/${javaToBuild}_pipeline_config.groovy"
         } else {
             javaToBuild = "${javaToBuild}u"
@@ -104,43 +99,52 @@ node ("built-in || master") {
         }
         checkout scm
     }
-
 }
 
 // If a parameter below hasn't been declared above, it is declared in the jenkins job itself
 if (scmVars != null || configureBuild != null || buildConfigurations != null) {
-    configureBuild(
-        javaToBuild,
-        buildConfigurations,
-        targetConfigurations,
-        DEFAULTS_JSON,
-        activeNodeTimeout,
-        dockerExcludes,
-        enableTests,
-        enableTestDynamicParallel,
-        enableInstallers,
-        enableSigner,
-        releaseType,
-        scmReference,
-        aqaReference,
-        aqaAutoGen,
-        overridePublishName,
-        useAdoptBashScripts,
-        additionalConfigureArgs,
-        scmVars,
-        additionalBuildArgs,
-        overrideFileNameVersion,
-        cleanWorkspaceBeforeBuild,
-        cleanWorkspaceAfterBuild,
-        cleanWorkspaceBuildOutputAfterBuild,
-        adoptBuildNumber,
-        propagateFailures,
-        keepTestReportDir,
-        keepReleaseLogs,
-        currentBuild,
-        this,
-        env
-    ).doBuild()
+    try {
+        configureBuild(
+            javaToBuild,
+            buildConfigurations,
+            targetConfigurations,
+            DEFAULTS_JSON,
+            activeNodeTimeout,
+            dockerExcludes,
+            enableTests,
+            enableTestDynamicParallel,
+            enableInstallers,
+            enableSigner,
+            releaseType,
+            scmReference,
+            buildReference,
+            ciReference,
+            helperReference,
+            aqaReference,
+            aqaAutoGen,
+            overridePublishName,
+            useAdoptBashScripts,
+            additionalConfigureArgs,
+            scmVars,
+            additionalBuildArgs,
+            overrideFileNameVersion,
+            cleanWorkspaceBeforeBuild,
+            cleanWorkspaceAfterBuild,
+            cleanWorkspaceBuildOutputAfterBuild,
+            adoptBuildNumber,
+            propagateFailures,
+            keepTestReportDir,
+            keepReleaseLogs,
+            currentBuild,
+            this,
+            env
+        ).doBuild()
+    } finally {
+        node('worker') {
+            println '[INFO] Cleaning up controller worker workspace...'
+            cleanWs notFailBuild: true
+        }
+    }
 } else {
     throw new Exception("[ERROR] One or more setup parameters are null.\nscmVars = ${scmVars}\nconfigureBuild = ${configureBuild}\nbuildConfigurations = ${buildConfigurations}")
 }

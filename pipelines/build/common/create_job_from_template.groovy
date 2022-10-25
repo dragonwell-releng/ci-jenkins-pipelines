@@ -21,8 +21,8 @@ limitations under the License.
 
 String buildFolder = "$JOB_FOLDER"
 
-if (!binding.hasVariable('GIT_URL')) GIT_URL = "https://github.com/adoptium/ci-jenkins-pipelines.git"
-if (!binding.hasVariable('GIT_BRANCH')) GIT_BRANCH = "master"
+if (!binding.hasVariable('GIT_URL')) GIT_URL = 'https://github.com/adoptium/ci-jenkins-pipelines.git'
+if (!binding.hasVariable('GIT_BRANCH')) GIT_BRANCH = 'master'
 
 isLightweight = true
 if (binding.hasVariable('PR_BUILDER')) {
@@ -41,7 +41,7 @@ pipelineJob("$buildFolder/$JOB_NAME") {
                 git {
                     remote {
                         url(GIT_URL)
-                        refspec(" +refs/pull/*:refs/remotes/origin/pr/* +refs/heads/master:refs/remotes/origin/master +refs/heads/*:refs/remotes/origin/*")
+                        refspec(' +refs/pull/*:refs/remotes/origin/pr/* +refs/heads/master:refs/remotes/origin/master +refs/heads/*:refs/remotes/origin/*')
                         credentials("${CHECKOUT_CREDENTIALS}")
                     }
                     branch("${GIT_BRANCH}")
@@ -57,17 +57,17 @@ pipelineJob("$buildFolder/$JOB_NAME") {
     }
     properties {
         // Hide all non Temurin builds from public view
-        if (VARIANT != "temurin") {
+        if (VARIANT != 'temurin') {
             authorizationMatrix {
                 inheritanceStrategy {
                     // Do not inherit permissions from global configuration
                     nonInheriting()
-                } 
-                permissions(['hudson.model.Item.Build:AdoptOpenJDK*build', 'hudson.model.Item.Build:AdoptOpenJDK*build-triage', 
+                }
+                permissions(['hudson.model.Item.Build:AdoptOpenJDK*build', 'hudson.model.Item.Build:AdoptOpenJDK*build-triage',
                 'hudson.model.Item.Cancel:AdoptOpenJDK*build', 'hudson.model.Item.Cancel:AdoptOpenJDK*build-triage',
                 'hudson.model.Item.Configure:AdoptOpenJDK*build', 'hudson.model.Item.Configure:AdoptOpenJDK*build-triage',
                 'hudson.model.Item.Read:AdoptOpenJDK*build', 'hudson.model.Item.Read:AdoptOpenJDK*build-triage',
-                 // eclipse-temurin-bot needs read access for TRSS
+                // eclipse-temurin-bot needs read access for TRSS
                 'hudson.model.Item.Read:eclipse-temurin-bot',
                 'hudson.model.Item.Workspace:AdoptOpenJDK*build', 'hudson.model.Item.Workspace:AdoptOpenJDK*build-triage',
                 'hudson.model.Run.Update:AdoptOpenJDK*build', 'hudson.model.Run.Update:AdoptOpenJDK*build-triage'])
@@ -94,6 +94,9 @@ pipelineJob("$buildFolder/$JOB_NAME") {
                 <dt><strong>DYNAMIC_LIST</strong></dt><dd>Comma separated list of tests, i.e: sanity.openjdk,sanity.perf,sanity.system</dd>
                 <dt><strong>NUM_MACHINES</strong></dt><dd>The number of machines for parallel=dynamic</dd>
                 <dt><strong>SCM_REF</strong></dt><dd>Source code ref to build, i.e branch, tag, commit id.</dd>
+                <dt><strong>BUILD_REF</strong></dt><dd>Specify temurin-build tag or branch.</dd>
+                <dt><strong>CI_REF</strong></dt><dd>Specify ci-jenkins-pipeline tag or branch.</dd>
+                <dt><strong>HELPER_REF</strong></dt><dd>Specify jenkins-helper tag or branch.</dd>
                 <dt><strong>AQA_REF</strong></dt><dd>Specific aqa-tests release or branch.</dd>
                 <dt><strong>AQA_AUTO_GEN</strong></dt><dd>If true, froce auto generate AQA test jobs.</dd>
                 <dt><strong>BUILD_ARGS</strong></dt><dd>args to pass to makejdk-any-platform.sh</dd>
@@ -103,6 +106,7 @@ pipelineJob("$buildFolder/$JOB_NAME") {
                 <dt><strong>ACTIVE_NODE_TIMEOUT</strong></dt><dd>Number of minutes we will wait for a label-matching node to become active.</dd>
                 <dt><strong>CODEBUILD</strong></dt><dd>Use a dynamic codebuild machine if no other machine is available</dd>
                 <dt><strong>DOCKER_IMAGE</strong></dt><dd>Use a docker build environment</dd>
+                <dt><strong>DOCKER_ARGS</strong></dt><dd>Additional args to be used in conjuction with DOCKER_IMAGE</dd>
                 <dt><strong>DOCKER_FILE</strong></dt><dd>Relative path to a dockerfile to be built and used on top of the DOCKER_IMAGE</dd>
                 <dt><strong>DOCKER_REGISTRY</strong></dt><dd>Custom Docker registry to pull DOCKER_IMAGE from</dd>
                 <dt><strong>DOCKER_CREDENTIAL</strong></dt><dd>Username & Password Jenkins credential ID for Docker registry login</dd>
@@ -131,9 +135,6 @@ pipelineJob("$buildFolder/$JOB_NAME") {
         textParam('ADOPT_DEFAULTS_JSON', "$ADOPT_DEFAULTS_JSON", """
         <strong>DO NOT ALTER THIS PARAM UNDER ANY CIRCUMSTANCES!</strong> This passes down adopt's default constants to the downstream job. NOTE: <code>DEFAULTS_JSON</code> has priority, the constants contained within this param will only be used as a failsafe.
         """)
-        if (binding.hasVariable('CUSTOM_LIBRARY_LOCATION')) {
-            stringParam('CUSTOM_LIBRARY_LOCATION', "$CUSTOM_LIBRARY_LOCATION")
-        }
         if (binding.hasVariable('CUSTOM_BASEFILE_LOCATION')) {
             stringParam('CUSTOM_BASEFILE_LOCATION', "$CUSTOM_BASEFILE_LOCATION")
         }

@@ -1,5 +1,6 @@
 class Config16 {
-  final Map<String, Map<String, ?>> buildConfigurations = [
+
+    final Map<String, Map<String, ?>> buildConfigurations = [
         x64Mac    : [
                 os                  : 'mac',
                 arch                : 'x64',
@@ -23,8 +24,8 @@ class Config16 {
                         openj9      : '!(centos6||rhel6)'
                 ],
                 configureArgs       : [
-                        "openj9"      : '--enable-dtrace --enable-jitserver',
-                        "hotspot"     : '--enable-dtrace'
+                        'openj9'      : '--enable-dtrace --enable-jitserver',
+                        'hotspot'     : '--enable-dtrace'
                 ]
         ],
 
@@ -51,20 +52,6 @@ class Config16 {
                 test                : 'default'
         ],
 
-        // TODO: Enable testing (https://github.com/adoptium/ci-jenkins-pipelines/issues/77)
-        aarch64Windows: [
-                os                  : 'windows',
-                arch                : 'aarch64',
-                crossCompile        : 'x64',
-                buildArgs           : '--cross-compile',
-                additionalNodeLabels: 'win2016&&vs2019',
-                test                : [
-                        nightly: [],
-                        weekly : []
-                ]
-        ],
-
-
         x32Windows: [
                 os                  : 'windows',
                 arch                : 'x86-32',
@@ -86,7 +73,6 @@ class Config16 {
                 cleanWorkspaceAfterBuild: true
         ],
 
-
         s390xLinux    : [
                 os                  : 'linux',
                 arch                : 's390x',
@@ -100,8 +86,8 @@ class Config16 {
                 additionalNodeLabels: 'centos7',
                 test                : 'default',
                 configureArgs       : [
-                        "hotspot"     : '--enable-dtrace',
-                        "openj9"      : '--enable-dtrace --enable-jitserver'
+                        'hotspot'     : '--enable-dtrace',
+                        'openj9'      : '--enable-dtrace --enable-jitserver'
                 ]
 
         ],
