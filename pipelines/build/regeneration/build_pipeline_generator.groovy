@@ -5,7 +5,7 @@ import groovy.json.JsonOutput
 node('built-in || master') {
     try {
         // Pull in Adopt defaults
-        String ADOPT_DEFAULTS_FILE_URL = 'https://raw.githubusercontent.com/adoptium/ci-jenkins-pipelines/master/pipelines/defaults.json'
+        String ADOPT_DEFAULTS_FILE_URL = 'https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines/master/pipelines/defaults.json'
         def getAdopt = new URL(ADOPT_DEFAULTS_FILE_URL).openConnection()
         Map<String, ?> ADOPT_DEFAULTS_JSON = new JsonSlurper().parseText(getAdopt.getInputStream().getText()) as Map
         if (!ADOPT_DEFAULTS_JSON || !Map.isInstance(ADOPT_DEFAULTS_JSON)) {
@@ -19,6 +19,8 @@ node('built-in || master') {
         if (!DEFAULTS_JSON || !Map.isInstance(DEFAULTS_JSON)) {
             throw new Exception("[ERROR] No DEFAULTS_JSON found at ${DEFAULTS_FILE_URL} or it is not a valid JSON object. Please ensure this path is correct and leads to a JSON or Map object file.")
         }
+        println ADOPT_DEFAULTS_FILE_URL
+        println DEFAULTS_FILE_URL
 
         Map remoteConfigs = [:]
         def repoBranch = null
