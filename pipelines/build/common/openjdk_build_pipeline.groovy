@@ -344,6 +344,11 @@ class Build {
 
         def aqaAutoGen = buildConfig.AQA_AUTO_GEN ?: false
 
+        def TEST_FLAG = ""
+        if (buildConfig.VARIANT == "dragonwell" && buildConfig.BUILD_ARGS.contains("standard")) {
+            TEST_FLAG = "Dragonwell_Standard"
+        }
+
         testList.each { testType ->
             // For each requested test, i.e 'sanity.openjdk', 'sanity.system', 'sanity.perf', 'sanity.external', call test job
             try {
@@ -429,6 +434,7 @@ class Build {
                                                 context.booleanParam(name: 'GENERATE_JOBS', value: aqaAutoGen),
                                                 context.string(name: 'ADOPTOPENJDK_BRANCH', value: aqaBranch),
                                                 context.string(name: 'ACTIVE_NODE_TIMEOUT', value: "${buildConfig.ACTIVE_NODE_TIMEOUT}"),
+                                                context.string(name: 'TEST_FLAG', value: TEST_FLAG),
                                                 context.booleanParam(name: 'DYNAMIC_COMPILE', value: DYNAMIC_COMPILE)],
                                             wait: true
                             context.node('worker') {
