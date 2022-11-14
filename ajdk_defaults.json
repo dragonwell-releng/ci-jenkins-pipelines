@@ -1,6 +1,6 @@
 {
     "repository"             : {
-        "build_url"          : "git@github.com:dragonwell-releng/openjdk-build.git",
+        "build_url"          : "https://gitee.com/joeylee97/openjdk-build.git",
         "build_branch"       : "master",
         "test_dirs"          : "/test/functional",
         "pipeline_url"       : "git@github.com:dragonwell-releng/ci-jenkins-pipelines.git",
