@@ -1,9 +1,9 @@
 {
     "repository"             : {
-        "build_url"          : "https://github.com/dragonwell-releng/openjdk-build.git",
+        "build_url"          : "git@github.com:dragonwell-releng/openjdk-build.git",
         "build_branch"       : "master",
         "test_dirs"          : "/test/functional",
-        "pipeline_url"       : "https://github.com/dragonwell-releng/ci-jenkins-pipelines.git",
+        "pipeline_url"       : "git@github.com:dragonwell-releng/ci-jenkins-pipelines.git",
         "pipeline_branch"    : "master"
     },
     "jenkinsDetails"         : {
@@ -16,8 +16,8 @@
         "weekly"             : "pipelines/jobs/weekly_release_pipeline_job_template.groovy"
     },
     "configDirectories"      : {
-        "build"              : "pipelines/jobs/dragonwell_configurations",
-        "nightly"            : "pipelines/jobs/dragonwell_configurations",
+        "build"              : "pipelines/jobs/ajdk_configurations",
+        "nightly"            : "pipelines/jobs/ajdk_configurations",
         "platform"           : "build-farm/platform-specific-configurations"
     },
     "scriptDirectories"      : {
@@ -54,5 +54,5 @@
         }
     },
     "importLibraryScript"    : "pipelines/build/common/import_lib.groovy",
-    "defaultsUrl"            : "https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines/master/ajdk_defaults.json"
+    "defaultsUrl"            : "https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines/ajdk/ajdk_defaults.json"
 }
