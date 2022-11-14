@@ -129,6 +129,7 @@ node('worker') {
         def jenkinsBuildRoot = (params.JENKINS_BUILD_ROOT) ?: "${DEFAULTS_JSON['jenkinsDetails']['rootUrl']}/job/${jobRoot}/"
 
         def jobTemplatePath = (params.JOB_TEMPLATE_PATH) ?: DEFAULTS_JSON['templateDirectories']['downstream']
+        println "jobTemplatePath: ${jobTemplatePath}"
         if (!fileExists(jobTemplatePath)) {
             println "[WARNING] ${jobTemplatePath} does not exist in your chosen repository. Updating it to use Adopt's instead"
             checkoutAdoptPipelines()
