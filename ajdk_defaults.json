@@ -4,7 +4,7 @@
         "build_branch"       : "master",
         "test_dirs"          : "/test/functional",
         "pipeline_url"       : "git@github.com:dragonwell-releng/ci-jenkins-pipelines.git",
-        "pipeline_branch"    : "master"
+        "pipeline_branch"    : "ajdk"
     },
     "jenkinsDetails"         : {
         "rootUrl"            : "http://ci.jvm.alibaba.net",
