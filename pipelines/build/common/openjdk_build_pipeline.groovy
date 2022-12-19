@@ -800,7 +800,7 @@ class Build {
                   context.string(name: 'UPSTREAM_JOB_NUMBER', value: "${env.BUILD_NUMBER}"),
                   context.string(name: 'UPSTREAM_JOB_NAME', value: "${env.JOB_NAME}"),
                   context.string(name: 'UPSTREAM_DIR', value: 'workspace/target'),
-                  ['$class': 'LabelParameterValue', name: 'NODE_LABEL', label: 'gpgsign']
+                  context.string(name: 'NODE_LABEL', value: 'gpgsign')
            ]
 
             def signSHAsJob = context.build job: 'build-scripts/release/sign_temurin_gpg',
