@@ -38,7 +38,10 @@ class Config11 {
                             "SapMachine": '--enable-dtrace=auto',
                             "fast_startup": '--enable-dtrace=auto',
                             "dragonwell": '--enable-dtrace=auto --enable-unlimited-crypto --with-jvm-variants=server --with-zlib=system --with-jvm-features=zgc,shenandoahgc'
-                    ]
+                    ],
+                buildArgs           : [
+                     'dragonwell'   : '--create-sbom'
+                ]
             ],
 
             x64Windows    : [
@@ -56,7 +59,10 @@ class Config11 {
                     test                : [
                             nightly: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
                             release: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf']
-                    ]
+                    ],
+                buildArgs           : [
+                     'dragonwell'   : '--create-sbom'
+                ]
                     //test                : 'default'
             ],
 
@@ -142,7 +148,10 @@ class Config11 {
                             "openj9"    : '--enable-dtrace=auto',
                             "corretto"  : '--enable-dtrace=auto',
                             "dragonwell": "--enable-dtrace=auto --with-extra-cflags=\"-march=armv8.2-a+crypto\" --with-extra-cxxflags=\"-march=armv8.2-a+crypto\""
-                    ]
+                    ],
+                buildArgs           : [
+                     'dragonwell'   : '--create-sbom'
+                ]
             ],
 
             x64LinuxXL    : [
@@ -185,7 +194,10 @@ class Config11 {
                     arch         : 'riscv64',
                     crossCompile : 'x64',
                     buildArgs    : '--cross-compile',
-                    configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root'
+                    configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root',
+                buildArgs           : [
+                     'dragonwell'   : '--create-sbom'
+                ]
             ],
             x64AlpineLinux: [
                     os         : 'alpine-linux',

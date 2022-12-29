@@ -35,6 +35,9 @@ class Config17 {
                 configureArgs       : [
                         "openj9"    : '--enable-dtrace --enable-jitserver',
                         "hotspot"   : '--enable-dtrace'
+                ],
+                buildArgs           : [
+                     'dragonwell'   : '--create-sbom'
                 ]
         ],
 
@@ -62,7 +65,10 @@ class Config17 {
                 dockerFile : [
                         dragonwell: 'pipelines/build/dockerFiles/alpine_dragonwell17.dockerfile'
                 ],
-                test                : 'default'
+                test                : 'default',
+                buildArgs           : [
+                     'dragonwell'   : '--create-sbom'
+                ]
                 //test                : [
                         // TODO: enable tests
                 //        nightly: [],
@@ -76,7 +82,10 @@ class Config17 {
                 arch                : 'x64',
                 additionalNodeLabels: 'win2012&&vs2019',
                 buildArgs: '--jdk-boot-dir /cygdrive/c/Jenkins/workspace/zulu17/',
-                test                : 'default'
+                test                : 'default',
+                buildArgs           : [
+                     'dragonwell'   : '--create-sbom'
+                ]
         ],
 
         x64WindowsXL: [
@@ -164,7 +173,10 @@ class Config17 {
                 arch                : 'aarch64',
                 dockerImage         : 'adoptopenjdk/centos7_build_image',
                 test                : 'default',
-                configureArgs       : '--enable-dtrace'
+                configureArgs       : '--enable-dtrace',
+                buildArgs           : [
+                     'dragonwell'   : '--create-sbom'
+                ]
         ],
 
         aarch64LinuxXL    : [
