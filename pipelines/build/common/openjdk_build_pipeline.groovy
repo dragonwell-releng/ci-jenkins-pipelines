@@ -595,8 +595,6 @@ class Build {
                             target: 'workspace/target/',
                             flatten: true)
 
-                    context.sh 'for file in $(ls workspace/target/*.tar.gz workspace/target/*.zip); do sha256sum "$file" > $file.sha256.txt ; done'
-
                     writeMetadata(versionInfo, false)
                     context.archiveArtifacts artifacts: 'workspace/target/*'
                 }
@@ -721,7 +719,6 @@ class Build {
                 // Archive the Mac and Windows pkg/msi
                 if (buildConfig.TARGET_OS == 'mac' || buildConfig.TARGET_OS == 'windows') {
                     try {
-                        context.sh 'for file in $(ls workspace/target/*.tar.gz workspace/target/*.pkg workspace/target/*.msi); do sha256sum "$file" > $file.sha256.txt ; done'
                         writeMetadata(versionData, false)
                         context.archiveArtifacts artifacts: 'workspace/target/*'
                     } catch (e) {
@@ -747,7 +744,6 @@ class Build {
                 if (buildConfig.TARGET_OS == 'mac' || buildConfig.TARGET_OS == 'windows') {
                     try {
                         signInstallerJob(versionData)
-                        context.sh 'for file in $(ls workspace/target/*.tar.gz workspace/target/*.pkg workspace/target/*.msi); do sha256sum "$file" > $file.sha256.txt ; done'
                         writeMetadata(versionData, false)
                         context.archiveArtifacts artifacts: 'workspace/target/*'
                     } catch (e) {
@@ -1127,6 +1123,16 @@ class Build {
 
             data.binary_type = type
             data.sha256 = hash
+
+            // generate sha256.txt
+            if (data.binary_type != 'sbom') {
+                context.sh """\
+                           if [ -x "\$(command -v shasum)" ]; then
+                              shasum -a 256 ${file} > ${file}.sha256.txt
+                           else
+                              sha256sum ${file} > ${file}.sha256.txt
+                           fi"""
+            }
 
             // To save on spam, only print out the metadata the first time
             if (!metaWrittenOut && initialWrite) {
