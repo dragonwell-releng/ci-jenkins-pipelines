@@ -167,6 +167,10 @@ class Builder implements Serializable {
             // Platform override specified
             cleanWsAfter = platformCleanWorkspaceAfterBuild
         }
+            
+        if ("${platformConfig.arch}".contains('riscv64')) {
+            additionalNodeLabels = "${additionalNodeLabels}&&riscv64build"
+        }
 
         return new IndividualBuildConfig(
             JAVA_TO_BUILD: javaToBuild,
