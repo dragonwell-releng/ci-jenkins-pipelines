@@ -426,6 +426,7 @@ class Build {
                                 }
                             }
                         }
+                        def timeLimit = env.JOB_NAME.contains('riscv64') ? "48" : "10"
                         context.catchError {
                             def testJob = context.build job: jobName,
                                             propagate: false,
@@ -445,7 +446,8 @@ class Build {
                                                 context.string(name: 'ADOPTOPENJDK_BRANCH', value: aqaBranch),
                                                 context.string(name: 'ACTIVE_NODE_TIMEOUT', value: "${buildConfig.ACTIVE_NODE_TIMEOUT}"),
                                                 context.string(name: 'TEST_FLAG', value: TEST_FLAG),
-                                                context.booleanParam(name: 'DYNAMIC_COMPILE', value: DYNAMIC_COMPILE)],
+                                                context.booleanParam(name: 'DYNAMIC_COMPILE', value: DYNAMIC_COMPILE),
+                                                context.string(name: 'TIME_LIMIT', value: timeLimit)]
                                             wait: true
                             context.node('worker') {
                                 def result = testJob.getResult()
