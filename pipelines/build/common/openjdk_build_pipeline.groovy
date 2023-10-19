@@ -261,7 +261,7 @@ class Build {
                 suffix = "adoptium/${buildConfig.JAVA_TO_BUILD}"
             }
         } else if (buildConfig.VARIANT == 'dragonwell') {
-            suffix = "alibaba/dragonwell${javaNumber}"
+            suffix = "dragonwell-project/dragonwell${javaNumber}"
         } else if (buildConfig.VARIANT == 'fast_startup') {
             suffix = 'adoptium/jdk11u-fast-startup-incubator'
         } else if (buildConfig.VARIANT == 'bisheng') {
@@ -270,6 +270,7 @@ class Build {
             throw new Exception("Unrecognised build variant: ${buildConfig.VARIANT} ")
         }
 
+        context.println "variant ${buildConfig.VARIANT}, suffix: ${suffix}"
         jdkRepo = "https://github.com/${suffix}.git"
         if (buildConfig.BUILD_ARGS.count("--ssh") > 0) {
             jdkRepo = "git@github.com:${suffix}.git"
