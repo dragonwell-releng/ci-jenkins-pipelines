@@ -1,18 +1,18 @@
 targetConfigurations = [
         'x64Linux'    : [
-                'dragonwell'
+                'ajdk'
         ],
         'x64AlpineLinux' : [
-                'dragonwell'
+                'ajdk'
         ],
         'x64Windows'  : [
-                'dragonwell'
+                'ajdk'
         ],
         'aarch64Linux': [
-                'dragonwell'
+                'ajdk'
         ],
         'riscv64Linux': [
-                'dragonwell'
+                'ajdk'
         ]
 ]
 
