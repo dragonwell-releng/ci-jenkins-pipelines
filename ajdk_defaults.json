@@ -7,7 +7,7 @@
         "pipeline_branch"    : "ajdk"
     },
     "jenkinsDetails"         : {
-        "rootUrl"            : "http://ci.jvm.alibaba.net",
+        "rootUrl"            : "http://ci:ci12345@ci.jvm.alibaba.net",
         "rootDirectory"      : "build-scripts"
     },
     "templateDirectories" : {
