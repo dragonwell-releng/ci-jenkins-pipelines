@@ -1758,7 +1758,7 @@ class Build {
                                     )
                                 }
                             } else {
-                                context.docker.image(buildConfig.DOCKER_IMAGE).inside(buildConfig.DOCKER_ARGS) {
+                                context.docker.image(buildConfig.DOCKER_IMAGE).inside("${buildConfig.DOCKER_ARGS} -e HTTPS_PROXY= -e https_proxy= -e HTTP_PROXY= -e http_proxy= ") {
                                     buildScripts(
                                         cleanWorkspace,
                                         cleanWorkspaceAfter,
