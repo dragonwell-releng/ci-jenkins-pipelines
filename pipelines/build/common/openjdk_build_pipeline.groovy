@@ -1758,14 +1758,25 @@ class Build {
                                     )
                                 }
                             } else {
-                                context.docker.image(buildConfig.DOCKER_IMAGE).inside("${buildConfig.DOCKER_ARGS} -e HTTPS_PROXY= -e https_proxy= -e HTTP_PROXY= -e http_proxy= ") {
-                                    buildScripts(
-                                        cleanWorkspace,
-                                        cleanWorkspaceAfter,
-                                        cleanWorkspaceBuildOutputAfter,
-                                        filename,
-                                        useAdoptShellScripts
-                                    )
+                                context.withCredentials([
+                                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextpk', accessKeyVariable: 'PKID', secretKeyVariable: 'AIEXTPK'],
+                                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextsk', accessKeyVariable: 'SKID', secretKeyVariable: 'AIEXTSK']]) {
+                                    context.docker.image(buildConfig.DOCKER_IMAGE).inside("${buildConfig.DOCKER_ARGS} -e HTTPS_PROXY= -e https_proxy= -e HTTP_PROXY= -e http_proxy= ") {
+                                        context.sh """
+                                            echo "${context.AIEXTSK}" > sk
+                                            echo "${context.AIEXTPK}" > pk
+                                            base64 -d sk > ~/sk.bin
+                                            base64 -d pk > ~/pk.bin
+                                            rm -rf sk pk
+                                        """
+                                        buildScripts(
+                                            cleanWorkspace,
+                                            cleanWorkspaceAfter,
+                                            cleanWorkspaceBuildOutputAfter,
+                                            filename,
+                                            useAdoptShellScripts
+                                        )
+                                    }
                                 }
                             }
                         }
