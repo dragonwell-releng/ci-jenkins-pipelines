@@ -4,7 +4,7 @@
         "build_branch"       : "master",
         "test_dirs"          : "/test/functional",
         "pipeline_url"       : "https://github.com/dragonwell-releng/ci-jenkins-pipelines.git",
-        "pipeline_branch"    : "generator_br",
+        "pipeline_branch"    : "master",
         "helper_ref"         : "master"
     },
     "jenkinsDetails"         : {
