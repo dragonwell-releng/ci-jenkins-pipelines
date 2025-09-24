@@ -3,8 +3,8 @@
         "build_url"          : "https://github.com/adoptium/temurin-build.git",
         "build_branch"       : "master",
         "test_dirs"          : "/test/functional",
-        "pipeline_url"       : "https://github.com/adoptium/ci-jenkins-pipelines.git",
-        "pipeline_branch"    : "master",
+        "pipeline_url"       : "https://github.com/dragonwell-releng/ci-jenkins-pipelines.git",
+        "pipeline_branch"    : "generator_br",
         "helper_ref"         : "master"
     },
     "jenkinsDetails"         : {
