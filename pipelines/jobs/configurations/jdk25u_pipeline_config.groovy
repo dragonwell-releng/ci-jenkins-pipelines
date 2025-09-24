@@ -1,4 +1,4 @@
-class Config24 {
+class Config25 {
 
     final Map<String, Map<String, ?>> buildConfigurations = [
         x64Mac    : [
@@ -14,7 +14,7 @@ class Config24 {
                 ],
                 configureArgs       : '--enable-dtrace',
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom'
+                        'dragonwell'   : '--create-jre-image --create-sbom'
                 ]
         ],
 
@@ -34,10 +34,10 @@ class Config24 {
                 ],
                 configureArgs       : [
                         'openj9'    : '--enable-dtrace',
-                        'temurin'   : '--enable-dtrace'
+                        'dragonwell'   : '--enable-dtrace'
                 ],
                 buildArgs           : [
-                        'temurin'   : '--create-source-archive --create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-11.3.0-Centos7.9.2009-b03'
+                        'dragonwell'   : '--create-source-archive --create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-14.2.0-Centos7.9.2009-b00'
                 ]
         ],
 
@@ -48,7 +48,7 @@ class Config24 {
                 test                : 'default',
                 configureArgs       : '--enable-headless-only=yes',
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom --enable-sbom-strace'
+                        'dragonwell'   : '--create-jre-image --create-sbom --enable-sbom-strace'
                 ]
         ],
 
@@ -59,10 +59,10 @@ class Config24 {
                 test                : 'default',
                 configureArgs       : [
                         'openj9'    : '--enable-headless-only=yes',
-                        'temurin'   : '--enable-headless-only=yes --with-jobs=4'
+                        'dragonwell'   : '--enable-headless-only=yes --with-jobs=4'
                 ],
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom --enable-sbom-strace'
+                        'dragonwell'   : '--create-jre-image --create-sbom --enable-sbom-strace'
                 ]
         ],
 
@@ -77,7 +77,7 @@ class Config24 {
                         weekly : ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.functional', 'extended.functional', 'extended.openjdk', 'extended.perf', 'special.functional', 'special.openjdk', 'dev.functional', 'dev.system', 'special.system']
                 ],
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
+                        'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                 ]
         ],
 
@@ -94,7 +94,7 @@ class Config24 {
                 ],
                 cleanWorkspaceAfterBuild: true,
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom'
+                        'dragonwell'   : '--create-jre-image --create-sbom'
                 ]
         ],
 
@@ -104,7 +104,7 @@ class Config24 {
                 dockerImage         : 'rhel7_build_image',
                 test                : 'default',
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-11.3.0-Centos7.9.2009-b03'
+                        'dragonwell'   : '--create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-14.2.0-Centos7.9.2009-b00'
                 ]
         ],
 
@@ -119,7 +119,7 @@ class Config24 {
                         'openj9'      : '--enable-dtrace'
                 ],
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-11.3.0-Centos7.9.2009-b03'
+                        'dragonwell'   : '--create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-14.2.0-Centos7.9.2009-b00'
                 ]
         ],
 
@@ -135,7 +135,7 @@ class Config24 {
                         'temurin'   : '--enable-dtrace --with-jobs=4'
                 ],
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-11.3.0-Centos7.6.1810-b03'
+                        'dragonwell'   : '--create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-14.2.0-Centos7.6.1810-b00'
                 ]
         ],
 
@@ -147,7 +147,7 @@ class Config24 {
                         weekly : ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.functional', 'extended.functional', 'extended.openjdk', 'extended.perf', 'special.functional', 'special.openjdk', 'dev.functional', 'dev.system', 'special.system']
                 ],
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom'
+                        'dragonwell'   : '--create-jre-image --create-sbom'
                 ]
         ],
 
@@ -160,7 +160,7 @@ class Config24 {
                 test                : 'default',
                 configureArgs       : '--enable-headless-only=yes --enable-dtrace',
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom'
+                        'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit gcc-14.2.0-Fedora_28-b00'
                 ]
         ],
 
@@ -174,12 +174,12 @@ class Config24 {
                 additionalNodeLabels: 'win2022&&vs2022',
                 test                : 'default',
                 buildArgs       : [
-                        'temurin'   : '--create-jre-image --create-sbom --cross-compile --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
+                        'dragonwell'   : '--create-jre-image --create-sbom --cross-compile --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                 ]
         ]
   ]
 
 }
 
-Config24 config = new Config24()
+Config25 config = new Config25()
 return config.buildConfigurations
